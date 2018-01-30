@@ -8,6 +8,9 @@ const Home = () => import('~/pages/home')
 const Settings = () => import('~/pages/settings/index')
 const SettingsProfile = () => import('~/pages/settings/profile')
 const SettingsPassword = () => import('~/pages/settings/password')
+const Jobs = () => import('~/pages/jobs/index')
+const JobsList = () => import('~/pages/jobs/list')
+const JobsCreate = () => import('~/pages/jobs/create')
 
 export default [
   { path: '/', name: 'welcome', component: Welcome },
@@ -22,6 +25,11 @@ export default [
     { path: '', redirect: { name: 'settings.profile' }},
     { path: 'profile', name: 'settings.profile', component: SettingsProfile },
     { path: 'password', name: 'settings.password', component: SettingsPassword }
+  ] },
+  { path: '/jobs', component: Jobs, children: [
+    { path: '', redirect: { name: 'jobs.list' }},
+    { path: 'list', name: 'jobs.list', component: JobsList },
+    { path: 'create', name: 'jobs.create', component: JobsCreate }
   ] },
 
   { path: '*', component: require('~/pages/errors/404') }

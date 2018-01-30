@@ -51,7 +51,7 @@ class LoginController extends Controller
 
         $token = (string) $this->guard()->getToken();
         $expiration = $this->guard()->getPayload()->get('exp');
-
+        
         return [
             'token' => $token,
             'token_type' => 'bearer',
@@ -69,4 +69,5 @@ class LoginController extends Controller
     {
         $this->guard()->logout();
     }
+
 }

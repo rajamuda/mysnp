@@ -78,10 +78,37 @@ export default {
   }),
 
   methods: {
+    // login(){
+    //   this.form.post('/api/login')
+    //     .then(({data}) => {
+    //       console.log(data);
+    //       // Save the token.
+    //       this.$store.dispatch('auth/saveToken', {
+    //         token: data.token,
+    //         remember: this.remember
+    //       })
+
+    //       // Fetch the user.
+    //       this.$store.dispatch('auth/fetchUser')
+    //         .then(function(){
+    //           // Redirect home.
+    //           this.$router.push({ name: 'home' })
+    //         })
+    //         .catch(e => {
+    //           console.log(e)
+    //         })
+
+          
+    //     })
+    //     .catch(e => {
+    //       console.log(e);
+    //     })
+    // }
+
     async login () {
       // Submit the form.
       const { data } = await this.form.post('/api/login')
-
+     
       // Save the token.
       this.$store.dispatch('auth/saveToken', {
         token: data.token,

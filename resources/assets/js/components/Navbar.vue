@@ -22,25 +22,32 @@
 
         <ul class="navbar-nav ml-auto">
           <!-- Authenticated -->
-          <li v-if="user" class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle text-dark"
-              href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              <img :src="user.photo_url" class="rounded-circle profile-photo mr-1">
-              {{ user.name }}
-            </a>
-            <div class="dropdown-menu">
-              <router-link :to="{ name: 'settings.profile' }" class="dropdown-item pl-3">
-                <fa icon="cog" fixed-width/>
-                {{ $t('settings') }}
+          <template v-if="user">
+            <li class="nav-item">
+              <router-link :to="{ name: 'jobs.list' }" class="nav-link" :class="{'active': jobsIsActive}">
+                {{ $t('jobs') }}
               </router-link>
-
-              <div class="dropdown-divider"></div>
-              <a @click.prevent="logout" class="dropdown-item pl-3"  href="#">
-                <fa icon="sign-out-alt" fixed-width/>
-                {{ $t('logout') }}
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle text-dark"
+                href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <img :src="user.photo_url" class="rounded-circle profile-photo mr-1">
+                {{ user.name }}
               </a>
-            </div>
-          </li>
+              <div class="dropdown-menu">
+                <router-link :to="{ name: 'settings.profile' }" class="dropdown-item pl-3">
+                  <fa icon="cog" fixed-width/>
+                  {{ $t('settings') }}
+                </router-link>
+
+                <div class="dropdown-divider"></div>
+                <a @click.prevent="logout" class="dropdown-item pl-3"  href="#">
+                  <fa icon="sign-out-alt" fixed-width/>
+                  {{ $t('logout') }}
+                </a>
+              </div>
+            </li>
+          </template>
           <!-- Guest -->
           <template v-else>
             <li class="nav-item">
@@ -69,9 +76,29 @@ export default {
     appName: window.config.appName
   }),
 
-  computed: mapGetters({
-    user: 'auth/user'
-  }),
+
+  computed: {
+    ...mapGetters({
+      user: 'auth/user'
+    }),
+
+    jobsIsActive: function() {
+      let currentPath = this.$route.path;
+      if(currentPath.includes("/jobs")){
+        return true;
+      }
+      return false;
+      // let listPath = this.$route.matched;
+      // let currentPath = this.$route.name;
+
+      // for(let i=0; i<listPath.length; i++){
+      //   if(currentPath == listPath[i].name){
+      //     return true;
+      //   }
+      // }
+      // return false;
+    }
+  },
 
   components: {
     LocaleDropdown
@@ -94,5 +121,10 @@ export default {
   width: 2rem;
   height: 2rem;
   margin: -.375rem 0;
+}
+.navbar-light .navbar-nav .nav-link.active {
+    color: rgba(255, 255, 255, 0.9);
+    background-color: #007bff;
+    border-radius: 10px;
 }
 </style>

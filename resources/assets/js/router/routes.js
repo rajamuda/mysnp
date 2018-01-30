@@ -11,6 +11,7 @@ const SettingsPassword = () => import('~/pages/settings/password')
 const Jobs = () => import('~/pages/jobs/index')
 const JobsList = () => import('~/pages/jobs/list')
 const JobsCreate = () => import('~/pages/jobs/create')
+const JobsProcess= () => import('~/pages/jobs/process')
 
 export default [
   { path: '/', name: 'welcome', component: Welcome },
@@ -29,7 +30,8 @@ export default [
   { path: '/jobs', component: Jobs, children: [
     { path: '', redirect: { name: 'jobs.list' }},
     { path: 'list', name: 'jobs.list', component: JobsList },
-    { path: 'create', name: 'jobs.create', component: JobsCreate }
+    { path: 'create', name: 'jobs.create', component: JobsCreate },
+    { path: 'process/:id', name: 'jobs.process', component: JobsProcess }
   ] },
 
   { path: '*', component: require('~/pages/errors/404') }

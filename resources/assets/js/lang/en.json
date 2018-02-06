@@ -33,5 +33,14 @@
   "register_with": "Register with",
   "jobs": "My Jobs",
   "list_jobs": "List",
-  "create_jobs": "Create new"
+  "create_jobs": "Create", 
+  "jobs_title": "Title",
+  "seq_references": "Reference Sequence",
+  "seq_reads_type": "Reads Type",
+  "seq_reads": "Reads",
+  "seq_reads2": "Reads 2 (pair)",
+  "seq_db_annotate": "Annotation Database",
+  "seq_mapper": "Alignment Tools",
+  "seq_snp_caller": "SNP Caller",
+  "select_one": "Please select one"
 }

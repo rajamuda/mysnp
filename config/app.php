@@ -65,7 +65,7 @@ return [
     |
     */
 
-    'timezone' => 'UTC+7',
+    'timezone' => 'Asia/Jakarta',
 
     /*
     |--------------------------------------------------------------------------
@@ -233,6 +233,49 @@ return [
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
 
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | SNP Identification Tools default parameter
+    |--------------------------------------------------------------------------
+    |
+    | Provide information about parameter for each tools used and given default
+    | value for each parameter to ease identification process
+    |
+    */
+    'defaultParams' => [
+        'bowtie2' => [
+            '-N'        => '0',
+            '-L'        => '22',
+            '-i'        => 'S,1,1.15',
+            '--n-ceil'  => 'L,0,0.15',
+            '--dpad'    => '15',
+            '--gbar'    => '4',
+            '--ma'      => '0',
+            '--mp'      => '6',
+            '--np'      => '1',
+            '--rdg'     => '5,3',
+            '--rfg'     => '5,3',
+            '--score-min' => 'L,-0.6,-0.6',
+            '-D'        => '15',
+            '-R'        => '2',
+            '-I'        => '0',
+            '-X'        => '500',
+        ],
+        'samtools' => [
+            '-C' => '0',
+            '-M' => '60',
+            '-q' => '0',
+            '-Q' => '13',
+            '-e' => '20',
+            '-F' => '0.002',
+            '-h' => '100',
+            '-L' => '250',
+            '-m' => '1',
+            '-o' => '40',
+            '-P' => 'all',                    
+        ],
     ],
 
 ];

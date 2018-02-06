@@ -33,5 +33,12 @@
   "register_with": "Daftar dengan",
   "jobs": "Jobs Saya",
   "list_jobs": "Daftar",
-  "create_jobs": "Buat baru"
+  "create_jobs": "Buat",
+  "jobs_title": "Nama jobs",
+  "seq_references": "Sekuens referensi",
+  "seq_reads_type": "Tipe pembacaan",
+  "seq_reads": "Reads",
+  "seq_db_annotate": "Database anotasi",
+  "seq_mapper": "Aplikasi alignment",
+  "seq_snp_caller": "SNP Caller"
 }

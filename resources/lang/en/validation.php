@@ -69,6 +69,7 @@ return [
     'present'              => 'The :attribute field must be present.',
     'regex'                => 'The :attribute format is invalid.',
     'required'             => 'The :attribute field is required.',
+    'required_reads'       => 'The reads field is required (at least 1 reads)',
     'required_if'          => 'The :attribute field is required when :other is :value.',
     'required_unless'      => 'The :attribute field is required unless :other is in :values.',
     'required_with'        => 'The :attribute field is required when :values is present.',
@@ -100,8 +101,11 @@ return [
     */
 
     'custom' => [
-        'attribute-name' => [
-            'rule-name' => 'custom-message',
+        'reads1.*.value' => [
+            'required' => 'The Reads field is required (at least 1 reads)',
+        ],
+        'reads2.*.value' => [
+            'required_if' => 'The Reads 2 (Pair) field is required (at least 1 reads)',
         ],
     ],
 
@@ -116,6 +120,15 @@ return [
     |
     */
 
-    'attributes' => [],
+    'attributes' => [
+        'title' => 'Job Title',
+        'references' => 'Sequence References',
+        'reads_type' => 'Reads Type',
+        'reads1.*.value' => 'Reads',
+        'reads2.*.value' => 'Reads 2 (Pair)',
+        'db_annotate' => 'Annotation Database',
+        'seq_mapper' => 'Alignment Tools',
+        'snp_caller' => 'SNP Caller',
+    ],
 
 ];

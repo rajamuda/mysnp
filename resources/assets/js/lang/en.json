@@ -42,5 +42,6 @@
   "seq_db_annotate": "Annotation Database",
   "seq_mapper": "Alignment Tools",
   "seq_snp_caller": "SNP Caller",
-  "select_one": "Please select one"
+  "select_one": "Please select one",
+  "advanced_param": "Advanced Parameters Settings"
 }

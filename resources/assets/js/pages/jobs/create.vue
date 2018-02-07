@@ -2,10 +2,12 @@
 	<div class="row">
 		<div class="col-lg-12 m-auto">
 			<card :title="$t('create_jobs')">
+				<!-- {{ form.errors }} -->
+				<!-- <alert-error :form="form" message="There were some problems with your input."></alert-error> -->
 				<form @submit.prevent="create" @keydown="form.onKeydown($event)">
 					<!-- Title -->
 					<div class="form-group row">
-            <label class="col-md-3 col-form-label text-md-right">{{ $t('jobs_title') }}</label>
+            <label v-tooltip="'Title for this jobs'" class="col-md-3 col-form-label text-md-right">{{ $t('jobs_title') }}</label>
             <div class="col-md-7">
               <input v-model="form.title" type="title" name="title" class="form-control"
                 :class="{ 'is-invalid': form.errors.has('title') }">
@@ -15,40 +17,43 @@
 
 					<!-- References -->
 					<div class="form-group row">
-						<label class="col-md-3 col-form-label text-md-right">{{ $t('seq_references') }}</label>
+						<label v-tooltip="'Sequences references If you have new references, you can upload in \'Upload\' section'" class="col-md-3 col-form-label text-md-right">{{ $t('seq_references') }}</label>
 						<div class="col-md-7">
-							<select v-model="form.references" name="references" class="form-control">
+							<select v-model="form.references" name="references" class="form-control" :class="{ 'is-invalid': form.errors.has('references') }">
 								<option disabled value="">{{ $t('select_one') }}</option>
-								<option v-for="opt in form.refopts" v-bind:value="opt.value">
+								<option v-for="opt in refopts" v-bind:value="opt.value">
 									{{ opt.text }}
 								</option>
 							</select>
+              <has-error :form="form" field="references"/>
 						</div>
 					</div>
 
 					<!-- Reads Type -->
 					<div class="form-group row">
-						<label class="col-md-3 col-form-label text-md-right">{{ $t('seq_reads_type') }}</label>
+						<label v-tooltip="'Type of reads, whether it single reads or paired reads'" class="col-md-3 col-form-label text-md-right">{{ $t('seq_reads_type') }}</label>
 						<div class="col-md-7">
-							<select v-model="form.reads_type" name="reads_type" class="form-control">
-								<option v-for="opt in form.reads_type_opts" v-bind:value="opt.value">
+							<select v-model="form.reads_type" name="reads_type" class="form-control" :class="{ 'is-invalid': form.errors.has('reads_type') }">
+								<option v-for="opt in reads_type_opts" v-bind:value="opt.value">
 									{{ opt.text }}
 								</option>
 							</select>
+              <has-error :form="form" field="reads_type"/>
 						</div>
 					</div>
 
 					<!-- Reads (dynamic) -->
 					<div class="form-group row"	style="margin-bottom:0.25rem" v-for="(read, index) in form.reads1">
-						<label v-if="index == 0" class="col-md-3 col-form-label text-md-right">{{ $t('seq_reads') }}</label>
+						<label v-tooltip="'Choose sequence from NGS machine reads. You can add more than one reads. If you have new reads, you can upload in \'Upload\' section'" v-if="index == 0" class="col-md-3 col-form-label text-md-right">{{ $t('seq_reads') }}</label>
 						<div v-else class="col-md-3"></div>
 						<div class="col-md-7">
-							<select v-model="read.value" v-bind:id="'reads1.'+index" name="reads1[]" class="form-control">
+							<select v-model="read.value" v-bind:id="'reads1.'+index" name="reads1[]" class="form-control" :class="{ 'is-invalid': form.errors.has('reads1.'+index+'.value') }">
 								<option disabled value="">{{ $t('select_one') }}</option>
-								<option v-for="opt in form.reads_opts" v-bind:value="opt.value">
+								<option v-for="opt in reads_opts" v-bind:value="opt.value">
 									{{ opt.text }}
 								</option>
 							</select>
+              <has-error :form="form" field="reads1.0.value"/>
 						</div>
 					</div>
 					<div class="form-group row">
@@ -60,15 +65,16 @@
 
 					<div v-if="form.reads_type == 'pe'">
 						<div class="form-group row"	style="margin-bottom:0.25rem" v-for="(read, index) in form.reads2">
-							<label v-if="index == 0" class="col-md-3 col-form-label text-md-right">{{ $t('seq_reads2') }}</label>
+							<label v-tooltip="'Choose sequence from NGS machine reads. You can add more than one reads. If you have new reads, you can upload in \'Upload\' section'" v-if="index == 0" class="col-md-3 col-form-label text-md-right">{{ $t('seq_reads2') }}</label>
 							<div v-else class="col-md-3"></div>
 							<div class="col-md-7">
-								<select v-model="read.value" v-bind:id="'reads2.'+index" name="reads2[]" class="form-control">
+								<select v-model="read.value" v-bind:id="'reads2.'+index" name="reads2[]" class="form-control" :class="{ 'is-invalid': form.errors.has('reads2.'+index+'.value') }">
 									<option disabled value="">{{ $t('select_one') }}</option>
-									<option v-for="opt in form.reads_opts" v-bind:value="opt.value">
+									<option v-for="opt in reads_opts" v-bind:value="opt.value">
 										{{ opt.text }}
 									</option>
 								</select>
+              	<has-error :form="form" field="reads2.0.value"/>
 							</div>
 						</div>
 						<div class="form-group row">
@@ -78,39 +84,45 @@
 							</div>
 						</div>
 					</div>
+
 					<!-- Annotation DB -->
 					<div class="form-group row">
-						<label class="col-md-3 col-form-label text-md-right">{{ $t('seq_db_annotate') }}</label>
+						<label v-tooltip="'Choose a database to annotate variant'" class="col-md-3 col-form-label text-md-right">{{ $t('seq_db_annotate') }}</label>
 						<div class="col-md-7">
-							<select v-model="form.db_annotate" name="reads_type" class="form-control">
-								<option v-for="opt in form.db_annotate_opts" v-bind:value="opt.value">
+							<select v-model="form.db_annotate" name="db_annotate" class="form-control" :class="{ 'is-invalid': form.errors.has('db_annotate') }">
+								<option disabled value="">{{ $t('select_one') }}</option>
+								<option v-for="opt in db_annotate_opts" v-bind:value="opt.value">
 									{{ opt.text }}
 								</option>
 							</select>
+              <has-error :form="form" field="db_annotate"/>
 						</div>
 					</div>
 
 					<!-- Seq Mapper -->
 					<div class="form-group row">
-						<label class="col-md-3 col-form-label text-md-right">{{ $t('seq_mapper') }}</label>
+						<label v-tooltip="'Choose an alignment tools to map references with each reads.'" class="col-md-3 col-form-label text-md-right">{{ $t('seq_mapper') }}</label>
 						<div class="col-md-7">
-							<select v-model="form.seq_mapper" name="reads_type" class="form-control">
-								<option v-for="opt in form.seq_mapper_opts" v-bind:value="opt.value">
+						<!-- 	<v-select v-model="form.seq_mapper" :options="seq_mapper_opts"></v-select> -->
+							<select v-model="form.seq_mapper" name="seq_mapper" class="form-control" :class="{ 'is-invalid': form.errors.has('seq_mapper') }">
+								<option v-for="opt in seq_mapper_opts" v-bind:value="opt.value">
 									{{ opt.text }}
 								</option>
 							</select>
+              <has-error :form="form" field="seq_mapper"/>
 						</div>
 					</div>
 
 					<!-- SNP Caller -->
 					<div class="form-group row">
-						<label class="col-md-3 col-form-label text-md-right">{{ $t('seq_snp_caller') }}</label>
+						<label v-tooltip="'Choose a variant calling tools to identify variant'" class="col-md-3 col-form-label text-md-right">{{ $t('seq_snp_caller') }}</label>
 						<div class="col-md-7">
-							<select v-model="form.snp_caller" name="reads_type" class="form-control">
-								<option v-for="opt in form.snp_caller_opts" v-bind:value="opt.value">
+							<select v-model="form.snp_caller" name="reads_type" class="form-control" :class="{ 'is-invalid': form.errors.has('snp_caller') }">
+								<option v-for="opt in snp_caller_opts" v-bind:value="opt.value">
 									{{ opt.text }}
 								</option>
 							</select>
+              <has-error :form="form" field="snp_caller"/>
 						</div>
 					</div>
 
@@ -123,11 +135,24 @@
 				</form>
 			</card>
 		</div>
+
+		<div class="col-lg-12 m-auto">
+			<card :title="$t('advanced_param')">
+				<h1>Advanced</h1>
+				<button v-tooltip="'hello'">Hover me</button>
+			</card>
+		</div>
 	</div>
 </template>
 
 <script>
 	import Form from 'vform'
+	import Vue from 'vue'
+	import VTooltip from 'v-tooltip'
+	import vSelect from 'vue-select'
+
+	Vue.component('v-select', vSelect)
+	Vue.use(VTooltip)
 
 	export default{
 		scrollToTop: false,
@@ -140,22 +165,22 @@
 	    form: new Form({
 		      title: '',
 		      references: '',
-		      refopts: [],
 		      reads_type: 'se',
-		      reads_type_opts: [
-		      	{text: 'Single-End', value: 'se'}, 
-		      	{text: 'Paired-End', value: 'pe'}
-		      ],
 		      reads1: [{value: ''}],
 		      reads2: [{value: ''}],
-		      reads_opts: [],
 		      db_annotate: '',
-		      db_annotate_opts: [],
 		      seq_mapper: 'bt2',
-		      seq_mapper_opts: [],
 		      snp_caller: 'sam',
-		      snp_caller_opts: []
 		    }),
+		    refopts: [],
+	    	reads_type_opts: [
+	      	{text: 'Single-End', value: 'se'}, 
+	      	{text: 'Paired-End', value: 'pe'}
+	      ],
+	      reads_opts: [],
+		    db_annotate_opts: [],
+		    seq_mapper_opts: [],
+		    snp_caller_opts: [],
 	  }),
 
 	  methods: {
@@ -177,11 +202,11 @@
 		    	{ text: 'GATK', value: 'gatk' }
 		    ]
 
-		    this.form.refopts = data
-		    this.form.reads_opts = data
-		    this.form.db_annotate_opts = data
-		    this.form.seq_mapper_opts = mapper
-		    this.form.snp_caller_opts = caller
+		    this.refopts = data
+		    this.reads_opts = data
+		    this.db_annotate_opts = data
+		    this.seq_mapper_opts = mapper
+		    this.snp_caller_opts = caller
 	  	},
 
 	  	addReads (id) {
@@ -201,7 +226,13 @@
 	  	},
 
 	  	create () {
-	  		alert("You clicked!")
+	  		this.form.post('/api/jobs/create')
+	  			.then(({data}) => {
+	  				console.log(data)
+	  			})
+	  			.catch(e => {
+	  				console.log(e)
+	  			})
 	  	}
 	  },
 

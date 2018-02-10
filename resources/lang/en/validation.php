@@ -101,10 +101,10 @@ return [
     */
 
     'custom' => [
-        'reads1.*.value' => [
+        'reads1' => [
             'required' => 'The Reads field is required (at least 1 reads)',
         ],
-        'reads2.*.value' => [
+        'reads2' => [
             'required_if' => 'The Reads 2 (Pair) field is required (at least 1 reads)',
         ],
     ],
@@ -124,8 +124,8 @@ return [
         'title' => 'Job Title',
         'references' => 'Sequence References',
         'reads_type' => 'Reads Type',
-        'reads1.*.value' => 'Reads',
-        'reads2.*.value' => 'Reads 2 (Pair)',
+        'reads1' => 'Reads',
+        'reads2' => 'Reads 2 (Pair)',
         'db_annotate' => 'Annotation Database',
         'seq_mapper' => 'Alignment Tools',
         'snp_caller' => 'SNP Caller',

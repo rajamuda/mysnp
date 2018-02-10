@@ -12,15 +12,14 @@ class JobsController extends Controller
     {
     	$user = $request->user();
     	
-    	// TO DO: make this dynamic
     	$this->validate($request, [
             'title' => 'required',
             'references' => 'required',
             'reads_type' => 'required|in:se,pe',
-            'reads1.*.value' => 'required',
-            'reads2.*.value' => 'required_if:reads_type,==,pe',
+            'reads1' => 'required',
+            'reads2' => 'required_if:reads_type,==,pe',
             'db_annotate' => 'required',
-            'seq_mapper' => 'required|in:bt2,bwa,na',
+            'seq_mapper' => 'required|in:bt2,bwa,novo',
             'snp_caller' => 'required|in:sam,gatk',
         ]);
 
@@ -40,6 +39,7 @@ class JobsController extends Controller
 		|
     	*/
     	$input = $request->all();
+        sleep(2);
 
     	return json_encode($input);
     }

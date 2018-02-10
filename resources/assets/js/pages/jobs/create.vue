@@ -43,44 +43,20 @@
 					</div>
 
 					<!-- Reads (dynamic) -->
-					<div class="form-group row"	style="margin-bottom:0.25rem" v-for="(read, index) in form.reads1">
-						<label v-tooltip="'Choose sequence from NGS machine reads. You can add more than one reads. If you have new reads, you can upload in \'Upload\' section'" v-if="index == 0" class="col-md-3 col-form-label text-md-right">{{ $t('seq_reads') }}</label>
-						<div v-else class="col-md-3"></div>
-						<div class="col-md-7">
-							<select v-model="read.value" v-bind:id="'reads1.'+index" name="reads1[]" class="form-control" :class="{ 'is-invalid': form.errors.has('reads1.'+index+'.value') }">
-								<option disabled value="">{{ $t('select_one') }}</option>
-								<option v-for="opt in reads_opts" v-bind:value="opt.value">
-									{{ opt.text }}
-								</option>
-							</select>
-              <has-error :form="form" field="reads1.0.value"/>
-						</div>
-					</div>
 					<div class="form-group row">
-						<div class="col-md-7 offset-md-3">
-							<input type="button" @click="addReads(1)" class="btn btn-sm btn-default" value="(+) Add">
-							<input v-if="form.reads1.length > 1" type="button" @click="removeReads(1)" class="btn btn-sm btn-default" value="(-) Remove">
+						<label v-tooltip="'Choose sequence from NGS machine reads. You can add more than one reads. If you have new reads, you can upload in \'Upload\' section'" class="col-md-3 col-form-label text-md-right">{{ $t('seq_reads') }}</label>
+						<div class="col-md-7">
+							<multi-select :options="reads_opts" :selected-options="form.reads1" placeholder="Select one or more" class="form-control" :is-error="form.errors.has('reads1')" @select="onSelectReads1"></multi-select>
+              <has-error :form="form" field="reads1"/>
 						</div>
 					</div>
 
 					<div v-if="form.reads_type == 'pe'">
-						<div class="form-group row"	style="margin-bottom:0.25rem" v-for="(read, index) in form.reads2">
-							<label v-tooltip="'Choose sequence from NGS machine reads. You can add more than one reads. If you have new reads, you can upload in \'Upload\' section'" v-if="index == 0" class="col-md-3 col-form-label text-md-right">{{ $t('seq_reads2') }}</label>
-							<div v-else class="col-md-3"></div>
-							<div class="col-md-7">
-								<select v-model="read.value" v-bind:id="'reads2.'+index" name="reads2[]" class="form-control" :class="{ 'is-invalid': form.errors.has('reads2.'+index+'.value') }">
-									<option disabled value="">{{ $t('select_one') }}</option>
-									<option v-for="opt in reads_opts" v-bind:value="opt.value">
-										{{ opt.text }}
-									</option>
-								</select>
-              	<has-error :form="form" field="reads2.0.value"/>
-							</div>
-						</div>
 						<div class="form-group row">
-							<div class="col-md-7 offset-md-3">
-								<input type="button" @click="addReads(2)" class="btn btn-sm btn-default" value="(+) Add">
-								<input v-if="form.reads2.length > 1" type="button" @click="removeReads(2)" class="btn btn-sm btn-default" value="(-) Remove">
+							<label v-tooltip="'Choose sequence from NGS machine reads. You can add more than one reads. If you have new reads, you can upload in \'Upload\' section'" class="col-md-3 col-form-label text-md-right">{{ $t('seq_reads2') }}</label>
+							<div class="col-md-7">
+								<multi-select :options="reads_opts" :selected-options="form.reads2" placeholder="Select one or more" class="form-control" :is-error="form.errors.has('reads2')" @select="onSelectReads2"></multi-select>
+	              <has-error :form="form" field="reads2"/>
 							</div>
 						</div>
 					</div>
@@ -103,7 +79,6 @@
 					<div class="form-group row">
 						<label v-tooltip="'Choose an alignment tools to map references with each reads.'" class="col-md-3 col-form-label text-md-right">{{ $t('seq_mapper') }}</label>
 						<div class="col-md-7">
-						<!-- 	<v-select v-model="form.seq_mapper" :options="seq_mapper_opts"></v-select> -->
 							<select v-model="form.seq_mapper" name="seq_mapper" class="form-control" :class="{ 'is-invalid': form.errors.has('seq_mapper') }">
 								<option v-for="opt in seq_mapper_opts" v-bind:value="opt.value">
 									{{ opt.text }}
@@ -126,20 +101,63 @@
 						</div>
 					</div>
 
-					<!-- Button -->
+					<!-- SNP Phylogenetic Tree Generator -->
 					<div class="form-group row">
-		        <div class="col-md-9 ml-md-auto">
+						<label v-tooltip="'Tools to generate phylogenetic tree of SNP'" class="col-md-3 col-form-label text-md-right">{{ $t('phylo_generator') }}</label>
+						<div class="col-md-7">
+							<input type="text" value="SNPhylo" class="form-control" disabled />
+						</div>
+					</div>
+
+					<!-- Advanced -->
+					<v-button type="default" native-type="button" class="col-md-12 collapsed" data-toggle="collapse" data-target="#advancedParameters">{{ $t('advanced_param') }} <fa icon="caret-square-down" fixed-width/></v-button>
+					<div class="collapse" id="advancedParameters">
+					  <div class="card card-body">
+					    <nav>
+							  <div class="nav nav-tabs" id="nav-tab" role="tablist">
+							    <!--Alignment Tools Parameters Settings -->
+							    <a v-if="form.seq_mapper == 'bt2'" class="nav-item nav-link active" id="nav-bt2-tab" data-toggle="tab" href="#nav-bt2" role="tab" aria-controls="nav-bt2" aria-selected="true">Bowtie2</a>
+							    <a v-else-if="form.seq_mapper == 'bwa'" class="nav-item nav-link active" id="nav-bwa-tab" data-toggle="tab" href="#nav-bwa" role="tab" aria-controls="nav-bwa" aria-selected="true">BWA</a>
+							    <a v-else-if="form.seq_mapper == 'novo'" class="nav-item nav-link active" id="nav-novo-tab" data-toggle="tab" href="#nav-novo" role="tab" aria-controls="nav-novo" aria-selected="true">Novoalign</a>
+							    <a v-else>Nothing</a>
+							    
+							    <!-- SNP Caller Parameters Settings -->
+							    <a v-if="form.snp_caller == 'sam'" class="nav-item nav-link" id="nav-sam-tab" data-toggle="tab" href="#nav-sam" role="tab" aria-controls="nav-sam" aria-selected="false">BCFtools</a>
+							    <a v-else-if="form.snp_caller == 'gatk'" class="nav-item nav-link" id="nav-gatk-tab" data-toggle="tab" href="#nav-gatk" role="tab" aria-controls="nav-gatk" aria-selected="false">GATK</a>
+							    <a v-else>Nothing</a>
+
+							    <!-- VCFutils -->
+							    <a class="nav-item nav-link" id="nav-filter-tab" data-toggle="tab" href="#nav-filter" role="tab" aria-controls="nav-filter" aria-selected="false">VCFutils (VarFilter)</a>
+							    
+							    <!-- SNPhylo -->
+							    <a class="nav-item nav-link" id="nav-phylo-tab" data-toggle="tab" href="#nav-phylo" role="tab" aria-controls="nav-phylo" aria-selected="false">SNPhylo</a>
+							  </div>
+							</nav>
+							<div class="tab-content" id="nav-tabContent">
+							  <div v-if="form.seq_mapper == 'bt2'" class="tab-pane fade show active" id="nav-bt2" role="tabpanel" aria-labelledby="nav-bt2-tab">...</div>
+							  <div v-else-if="form.seq_mapper == 'bwa'" class="tab-pane fade show active" id="nav-bwa" role="tabpanel" aria-labelledby="nav-bwa-tab">...</div>
+							  <div  v-else-if="form.seq_mapper == 'novo'" class="tab-pane fade show active" id="nav-novo" role="tabpanel" aria-labelledby="nav-novo-tab">...</div>
+							  <div v-else>Nothing</div>
+
+							  <div v-if="form.snp_caller == 'sam'" class="tab-pane fade" id="nav-sam" role="tabpanel" aria-labelledby="nav-sam-tab">...</div>
+							  <div v-else-if="form.snp_caller == 'gatk'" class="tab-pane fade" id="nav-gatk" role="tabpanel" aria-labelledby="nav-gatk-tab">...</div>
+							  <div v-else>Nothing</div>
+
+							  <div class="tab-pane fade" id="nav-filter" role="tabpanel" aria-labelledby="nav-filter-tab">...</div>
+							  <div class="tab-pane fade" id="nav-phylo" role="tabpanel" aria-labelledby="nav-phylo-tab">...</div>
+							</div>
+					  </div>
+					</div>
+					<!-- End Adavanced -->
+
+					<!-- Submit -->
+					<div class="form-group row" style="margin-top:1rem">
+		        <div class="col-md-10 text-right">
+		          <router-link :to="{ name: 'jobs.list'}" class="btn btn-danger">{{ $t('cancel_jobs') }}</router-link>
 		          <v-button type="success" :loading="form.busy">{{ $t('create_jobs') }}</v-button>
 		        </div>
 		      </div>
 				</form>
-			</card>
-		</div>
-
-		<div class="col-lg-12 m-auto">
-			<card :title="$t('advanced_param')">
-				<h1>Advanced</h1>
-				<button v-tooltip="'hello'">Hover me</button>
 			</card>
 		</div>
 	</div>
@@ -149,10 +167,10 @@
 	import Form from 'vform'
 	import Vue from 'vue'
 	import VTooltip from 'v-tooltip'
-	import vSelect from 'vue-select'
+  import { MultiSelect } from 'vue-search-select'
 
-	Vue.component('v-select', vSelect)
 	Vue.use(VTooltip)
+	Vue.component('multi-select', MultiSelect)
 
 	export default{
 		scrollToTop: false,
@@ -166,8 +184,8 @@
 		      title: '',
 		      references: '',
 		      reads_type: 'se',
-		      reads1: [{value: ''}],
-		      reads2: [{value: ''}],
+		      reads1: [],
+		      reads2: [],
 		      db_annotate: '',
 		      seq_mapper: 'bt2',
 		      snp_caller: 'sam',
@@ -194,11 +212,11 @@
 		    var mapper = [
 		    	{ text: 'Bowtie2', value: 'bt2' },
 		    	{ text: 'BWA', value: 'bwa' },
-		    	{ text: 'Novoalign', value: 'na' }
+		    	{ text: 'Novoalign', value: 'novo' }
 		    ]
 
 		    var caller = [
-		    	{ text: 'Samtools', value: 'sam' },
+		    	{ text: 'BCFtools (Samtools)', value: 'sam' },
 		    	{ text: 'GATK', value: 'gatk' }
 		    ]
 
@@ -209,22 +227,6 @@
 		    this.snp_caller_opts = caller
 	  	},
 
-	  	addReads (id) {
-	  		if(id == 1){
-	  			this.form.reads1.push({value: ''})
-	  		}else{
-	  			this.form.reads2.push({value: ''})
-	  		}
-	  	},
-
-	  	removeReads (id) {
-	  		if(id == 1){
-	  			this.form.reads1.pop()
-	  		}else{
-	  			this.form.reads2.pop()
-	  		}
-	  	},
-
 	  	create () {
 	  		this.form.post('/api/jobs/create')
 	  			.then(({data}) => {
@@ -233,11 +235,25 @@
 	  			.catch(e => {
 	  				console.log(e)
 	  			})
-	  	}
+	  	},
+
+      onSelectReads1 (items, lastSelectItem) {
+        this.form.reads1 = items
+      },
+
+      onSelectReads2 (items, lastSelectItem) {
+        this.form.reads2 = items
+      },
 	  },
 
 	  mounted () {
 	  	this.populateOptions();
-	  }
+	  },
 	}
 </script>
+
+<style scoped>
+.help-block.invalid-feedback {
+	display: block !important;
+}
+</style>

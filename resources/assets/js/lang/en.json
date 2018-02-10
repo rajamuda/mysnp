@@ -34,6 +34,7 @@
   "jobs": "My Jobs",
   "list_jobs": "List",
   "create_jobs": "Create", 
+  "cancel_jobs": "Cancel",
   "jobs_title": "Title",
   "seq_references": "Reference Sequence",
   "seq_reads_type": "Reads Type",
@@ -42,6 +43,7 @@
   "seq_db_annotate": "Annotation Database",
   "seq_mapper": "Alignment Tools",
   "seq_snp_caller": "SNP Caller",
+  "phylo_generator": "Phylogenetic Tree Generator",
   "select_one": "Please select one",
   "advanced_param": "Advanced Parameters Settings"
 }

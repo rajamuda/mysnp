@@ -237,6 +237,35 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Directory information
+    |--------------------------------------------------------------------------
+    |
+    | Provide directory address for jobs, tools, and sequence
+    |
+    */
+    'toolsDir' => [
+        'bowtie2' => '/home/rajamuda/htdocs/mysnp/resources/tools/mapper/bowtie2',
+        'bwa' => '/home/rajamuda/htdocs/mysnp/resources/tools/mapper/bwa',
+        'novoalign' => '/home/rajamuda/htdocs/mysnp/resources/tools/mapper/novocraft',
+
+        'samtools' => '/home/rajamuda/htdocs/mysnp/resources/tools/caller/samtools',
+        'bcftools' => '/home/rajamuda/htdocs/mysnp/resources/tools/caller/bcftools',
+        'vcfutils' => '/home/rajamuda/htdocs/mysnp/resources/tools/caller/bcftools/misc',
+
+        'gatk' => '/home/rajamuda/htdocs/mysnp/resources/tools/caller/gatk',
+        'picard' => '/home/rajamuda/htdocs/mysnp/resources/tools/caller/picard',
+
+        'snpeff' => '/home/rajamuda/htdocs/mysnp/resources/tools/annotate/snpEff',
+
+        'snphylo' => '/home/rajamuda/htdocs/mysnp/resources/tools/snphylo',
+    ],
+
+    'jobsDir' => '/home/rajamuda/htdocs/mysnp/resources/jobs',
+    'sequenceDir' => '/home/rajamuda/htdocs/mysnp/resources/sequence',
+
+
+    /*
+    |--------------------------------------------------------------------------
     | SNP Identification Tools default parameter
     |--------------------------------------------------------------------------
     |
@@ -246,36 +275,228 @@ return [
     */
     'defaultParams' => [
         'bowtie2' => [
-            '-N'        => '0',
-            '-L'        => '22',
-            '-i'        => 'S,1,1.15',
-            '--n-ceil'  => 'L,0,0.15',
-            '--dpad'    => '15',
-            '--gbar'    => '4',
-            '--ma'      => '0',
-            '--mp'      => '6',
-            '--np'      => '1',
-            '--rdg'     => '5,3',
-            '--rfg'     => '5,3',
-            '--score-min' => 'L,-0.6,-0.6',
-            '-D'        => '15',
-            '-R'        => '2',
-            '-I'        => '0',
-            '-X'        => '500',
+            '-N'        => '0', // int
+            '-L'        => '22', // int
+            '-i'        => 'S,1,1.15', // func 
+            '--n-ceil'  => 'L,0,0.15', // func
+            '--dpad'    => '15', // int
+            '--gbar'    => '4', // int
+            '--ignore-quals' => false, // bool
+            '--nofw' => false, // bool
+            '--norc' => false, // bool
+            '--local' => false, // bool
+            '--ma'      => '0', // int
+            '--mp'      => '6', //int
+            '--np'      => '1', // int
+            '--rdg'     => '5,3', // int1,int2
+            '--rfg'     => '5,3', // int1,int2
+            '--score-min' => 'L,-0.6,-0.6', // func
+            '-D'        => '15', // int
+            '-R'        => '2', // int
+            '-I'        => '0', // int
+            '-X'        => '500', // int
+            '--no-mixed' => false, // bool
+            '--no-discordant' => false, // bool
+            '--no-dovetail' => false, // bool
+            '--no-contain' => false, // bool
+            '--no-overlap' => false, // bool
         ],
+
         'samtools' => [
-            '-C' => '0',
-            '-M' => '60',
-            '-q' => '0',
-            '-Q' => '13',
-            '-e' => '20',
-            '-F' => '0.002',
-            '-h' => '100',
-            '-L' => '250',
-            '-m' => '1',
-            '-o' => '40',
-            '-P' => 'all',                    
+            '-A' => false, // bool
+            '-B' => false, // bool
+            '-R' => false, // bool
+            '-C' => '0', // int
+            '-M' => '60', // int
+            '-q' => '0', // int
+            '-Q' => '13', // int
+            '-I' => true, // bool
+            '-e' => '20', // int
+            '-F' => '0.002', // float
+            '-h' => '100', // int
+            '-L' => '250', // int
+            '-m' => '1', // int
+            '-o' => '40', // int
+            '-P' => 'all', // string              
         ],
+
+        'vcfutils' => [
+            '-Q' => '10', // int
+            '-d' => '2', // int
+            '-D' => '10000000', // int
+            '-a' => '2', // int
+            '-w' => '3', // int
+            '-W' => '10', // int              
+        ],
+
+        'bwa' => [
+            'aln' => [
+                '-n' => '0.04', // float
+                '-o' => '1', // int
+                '-e' => '-1', // int
+                '-d' => '16', // int
+                '-i' => '5', // int
+                '-l' => 'inf', // int (25-35), may be infinite
+                '-k' => '2', // int
+                '-t' => '1', // int
+                '-M' => '3', // int
+                '-O' => '11', // int
+                '-E' => '4', // int
+                // '-q' => '0',
+            ],
+            'samse' => [
+                // '-n' => '3',
+            ],
+            'sampe' => [
+                '-a' => '500', // int
+                '-o' => '100000', // int
+                // '-n' => '3',
+                // '-N' => '10',
+                // '-P' => false,
+            ],
+        ],
+
+        'gatk' => [
+            'snp_only' => true,
+            '-contamination' => '0.0', // double
+            '-hets' => '0.001', // double
+            '-indelHeterozygosity' => '0.000125', // 1.25E-4 double
+            '--maxReadsInRegionPerSample' => '10000', // int
+            '--min_base_quality_score' => '10', // int
+            '--minReadsPerAlignmentStart' => '10', // int
+            '-ploidy' => '2', // int
+            '-stand_call_conf' => '30.0', // double
+            '-stand_emit_conf' => '30.0', // double
+        ],
+
+        'picard' => [
+            'MIN_AB' => '0.0', // double
+            'MIN_DP' => '0', // int
+            'MIN_GQ' => '0', // int
+            'MAX_FS' => '1.7976931348623157E308', // double
+            'MIN_QD' => '0.0', // double
+        ],
+
+    ],
+
+
+    // bool, int, float/double, string, func
+    'defaultParamsType' => [
+        'bowtie2' => [
+            '-N'        => 'int',
+            '-L'        => 'int',
+            '-i'        => 'func', 
+            '--n-ceil'  => 'func',
+            '--dpad'    => 'int',
+            '--gbar'    => 'int',
+            '--ignore-quals' => 'bool',
+            '--nofw' => 'bool',
+            '--norc' => 'bool',
+            '--local' => 'bool',
+            '--ma'      => 'int',
+            '--mp'      => 'int',
+            '--np'      => 'int',
+            '--rdg'     => 'int', // <int1,int2>
+            '--rfg'     => 'int', // <int1,int2>
+            '--score-min' => 'func',
+            '-D'        => 'int',
+            '-R'        => 'int',
+            '-I'        => 'int',
+            '-X'        => 'int',
+            '--no-mixed' => 'bool',
+            '--no-discordant' => 'bool',
+            '--no-dovetail' => 'bool',
+            '--no-contain' => 'bool',
+            '--no-overlap' => 'bool',
+        ],
+
+        'samtools' => [
+            '-A' => 'bool',
+            '-B' => 'bool',
+            '-R' => 'bool',
+            '-C' => 'int',
+            '-M' => 'int',
+            '-q' => 'int',
+            '-Q' => 'int',
+            '-I' => 'bool',
+            '-e' => 'int',
+            '-F' => 'float',
+            '-h' => 'int',
+            '-L' => 'int',
+            '-m' => 'int',
+            '-o' => 'int',
+            '-P' => 'string',              
+        ],
+
+        'vcfutils' => [
+            '-Q' => 'int',
+            '-d' => 'int',
+            '-D' => 'int',
+            '-a' => 'int',
+            '-w' => 'int',
+            '-W' => 'int',              
+        ],
+
+        'bwa' => [
+            'aln' => [
+                '-n' => 'float',
+                '-o' => 'int',
+                '-e' => 'int',
+                '-d' => 'int',
+                '-i' => 'int',
+                '-l' => 'int', // (25-35), or inf
+                '-k' => 'int',
+                '-t' => 'int',
+                '-M' => 'int',
+                '-O' => 'int',
+                '-E' => 'int',
+                // '-q' => '0',
+            ],
+            'samse' => [
+                // '-n' => '3',
+            ],
+            'sampe' => [
+                '-a' => 'int',
+                '-o' => 'int',
+                // '-n' => '3',
+                // '-N' => '10',
+                // '-P' => false,
+            ],
+        ],
+
+        'gatk' => [
+            'snp_only' => 'bool',
+            '-contamination' => 'float',
+            '-hets' => 'float',
+            '-indelHeterozygosity' => 'float',
+            '--maxReadsInRegionPerSample' => 'int',
+            '--min_base_quality_score' => 'int',
+            '--minReadsPerAlignmentStart' => 'int',
+            '-ploidy' => 'int',
+            '-stand_call_conf' => 'float',
+            '-stand_emit_conf' => 'float',
+        ],
+
+        'picard' => [
+            'MIN_AB' => 'float',
+            'MIN_DP' => 'int',
+            'MIN_GQ' => 'int',
+            'MAX_FS' => 'string', //float
+            'MIN_QD' => 'float',
+        ],
+
+    ],
+
+    'process' => [
+        // 'indexing', // opsional
+        'preparing',
+        'mapping',
+        'sorting',
+        // 'base_recalibration'
+        'calling',
+        'filtering',
+        'annotation',
+        // 'snphylo',
     ],
 
 ];

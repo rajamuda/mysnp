@@ -8,3 +8,7 @@ export const UPDATE_USER = 'UPDATE_USER'
 
 // lang.js
 export const SET_LOCALE = 'SET_LOCALE'
+
+// job.js
+export const FETCH_JOB = 'FETCH_JOB'
+export const FETCH_JOB_PROCESS = 'FETCH_JOB_PROCESS'

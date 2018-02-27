@@ -45,5 +45,19 @@
   "seq_snp_caller": "SNP Caller",
   "phylo_generator": "Phylogenetic Tree Generator",
   "select_one": "Please select one",
-  "advanced_param": "Advanced Parameters Settings"
+  "advanced_param": "Advanced Parameters Settings",
+
+  "status": "Status",
+  "start_date": "Start date",
+  "finish_date": "Finish date",
+  "output_file": "Output file",
+  "output_message": "Output message",
+  "completed": "Completed",
+
+  "mapping": "Mapping to Reference",
+  "sorting": "Sorting SAM to BAM",
+  "calling": "SNP Calling",
+  "filtering": "SNP Filtering",
+  "annotation": "Annotate Detected SNP",
+  "storing_to_db": "Store Process into Database"
 }

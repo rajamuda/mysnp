@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Http\Controllers\Jobs\ProcessController;
+use App\Http\Controllers\Jobs\JobProcessController;
 use Illuminate\Support\Facades\DB;
 use Cocur\BackgroundProcess\BackgroundProcess;
 
@@ -45,18 +45,18 @@ class RunJobs extends Command
                 TO DO: cek job yang di-submit..
                 Untuk setiap job yang di-submit (status: WAITING), ambil job_id nya
             */
-            $submittedJobs = $this->getSubmittedJobs();
+            $submittedJobs = JobProcessController::getSubmittedJobs();
             foreach($submittedJobs as $job){
                 echo date('Y-m-d H:i:s')." Starting jobs {$job->id}...\n";
 
-                $this->updateJobProcess($job->id);
-                $job_process = new ProcessController($job->id);
+                JobProcessController::updateJobProcess($job->id);
+                $job_process = new JobProcessController($job->id);
                 $job_process->start(1); // start mapping process
                 echo date('Y-m-d H:i:s')." Running 'mapping'\n";
             }
 
             // cek job yang sedang run
-            $runningJobs = $this->getRunningJobs();
+            $runningJobs = JobProcessController::getRunningJobs();
             foreach($runningJobs as $job){
                 $process = substr($job->status,9);
                 $processID = array_search($process, app('config')->get('app')['process']);
@@ -64,15 +64,15 @@ class RunJobs extends Command
                 $maxProcess = count(app('config')->get('app')['process']);
 
                 // cek apakah job dengan process id masih berjalan             
-                if($this->getRunningJobProcess($process, $job->id)->status == 'FINISHED'){
+                if(JobProcessController::getRunningJobProcess($process, $job->id)->status == 'FINISHED'){
                     $processID++;
 
                     if($processID == $maxProcess){
-                        $this->setJobFinished($job->id);
+                        JobProcessController::setJobFinished($job->id);
                         echo date('Y-m-d H:i:s')." Finishing jobs '{$job->id}'\n";
                     }else{
-                        $this->updateJobProcess($job->id, $processID);
-                        $job_process = new ProcessController($job->id);
+                        JobProcessController::updateJobProcess($job->id, $processID);
+                        $job_process = new JobProcessController($job->id);
                         $job_process->start($processID); // start process
                         echo date('Y-m-d H:i:s')." Running '".app('config')->get('app')['process'][$processID]."'\n";
                     }
@@ -80,10 +80,10 @@ class RunJobs extends Command
             }
 
             // cek apakah proses pada suatu job telah selesai atau belum
-            $runningProcess = $this->getRunningProcess();
+            $runningProcess = JobProcessController::getRunningProcess();
             foreach($runningProcess as $process){
                 if(!BackgroundProcess::createFromPID($process->pid)->isRunning()){
-                    $this->setProcessFinished($process->job_id, $process->pid);
+                    JobProcessController::setProcessFinished($process->job_id, $process->pid);
                     echo date('Y-m-d H:i:s')." Finishing process '{$process->process}' of job '{$process->job_id}' with pid '{$process->pid}'\n";
                 }
             }
@@ -92,34 +92,46 @@ class RunJobs extends Command
         }
     }
 
-    public function getSubmittedJobs(){
-        return DB::table('jobs')->where('status', 'WAITING')->get(['id']);
-    }   
+    // public function getSubmittedJobs(){
+    //     return DB::table('jobs')->where('status', 'WAITING')->get(['id']);
+    // }   
 
-    public function getRunningJobs(){
-        return DB::table('jobs')->where('status', 'like' ,'RUNNING%')->get(['id', 'status']);
-    }
+    // public function getRunningJobs(){
+    //     return DB::table('jobs')->where('status', 'like' ,'RUNNING%')->get(['id', 'status']);
+    // }
 
-    public function getRunningProcess(){
-        return DB::table('process')->where('status', 'RUNNING')->get(['id','job_id','pid', 'process']);
-    }
+    // public function getRunningProcess(){
+    //     return DB::table('process')->where('status', 'RUNNING')->get(['id','job_id','pid', 'process']);
+    // }
 
-    public function setJobFinished($id){
-        DB::table('jobs')->where('id', $id)->update(['status' => 'FINISHED', 'finished_at' => date('Y-m-d H:i:s')]);
-    }
+    // public function setJobFinished($id){
+    //     DB::table('jobs')->where('id', $id)->update(['status' => 'FINISHED', 'finished_at' => date('Y-m-d H:i:s')]);
+    //     $this->progress($id, ['100', 'FINISHED', date('Y-m-d H:i:s')]);
+    // }
 
-    public function setProcessFinished($job_id, $pid){
-        DB::table('process')->where([['job_id', '=', $job_id], ['pid', '=', $pid]])->update(['status' => 'FINISHED', 'finished_at' => date('Y-m-d H:i:s')]);
-    }
+    // public function setProcessFinished($job_id, $pid){
+    //     DB::table('process')->where([['job_id', '=', $job_id], ['pid', '=', $pid]])->update(['status' => 'FINISHED', 'finished_at' => date('Y-m-d H:i:s')]);
+    // }
 
-    public function getRunningJobProcess($process, $job_id){
-        return DB::table('process')->where([['process', '=', $process], ['job_id', '=', $job_id]])->first(['status']);
-    }
+    // public function getRunningJobProcess($process, $job_id){
+    //     return DB::table('process')->where([['process', '=', $process], ['job_id', '=', $job_id]])->first(['status']);
+    // }
 
-    public function updateJobProcess($id, $processID = 1){
-        $process = app('config')->get('app')['process'][$processID];
-        $status = "RUNNING: $process";
+    // public function updateJobProcess($id, $processID = 1){
+    //     $list_process = app('config')->get('app')['process'];
+    //     $process = $list_process[$processID];
+    //     $status = "RUNNING: $process";
 
-        DB::table('jobs')->where('id', $id)->update(['status' => $status]);
-    }
+    //     DB::table('jobs')->where('id', $id)->update(['status' => $status]);
+        
+    //     $progress = ($processID/count($list_process)) * 100;
+    //     $message = [$progress, $status, date('Y-m-d H:i:s')];
+    //     $this->progress($id, $message);
+    // }
+
+    // public function progress($job_id, $message){
+    //     $dir = app('config')->get('app')['jobsDir']."/$job_id/progress.txt";
+    //     $message = implode(";", $message);
+    //     file_put_contents("$dir", "$message\n", FILE_APPEND);        
+    // }
 }

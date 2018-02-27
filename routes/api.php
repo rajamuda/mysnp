@@ -24,10 +24,10 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::patch('settings/password', 'Settings\PasswordController@update');
 
     Route::post('jobs/create', 'Jobs\JobsController@create');
-    Route::get('jobs/params/{tools}', 'Jobs\JobsController@getParams');
+    Route::get('jobs/{id}/process', 'Jobs\JobsController@getJobProcessById');
+
     Route::get('test', 'Jobs\JobsController@coba');
 
-    Route::get('jobs/process/{id}', 'Jobs\ProcessController@start');
 });
 
 Route::group(['middleware' => 'guest:api'], function () {

@@ -4,15 +4,17 @@ namespace App\Http\Controllers\Jobs;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use Symfony\Component\Process\Process;
+// use Symfony\Component\Process\Process;
 use Illuminate\Support\Facades\DB;
 use Cocur\BackgroundProcess\BackgroundProcess;
 
-class ProcessController extends Controller
+use App\Job;
+use App\Process;
+
+class JobProcessController extends Controller
 {
     //
     public $job_id;
-    // public $user_id;
     public $reads;
     public $refs;
     public $index;
@@ -22,7 +24,6 @@ class ProcessController extends Controller
 
     public function __construct($job_id, $user_id = null){
         $this->job_id = $job_id;
-        // $this->user_id = $user_id;
     }
 
     public function start($processID = null){
@@ -55,7 +56,7 @@ class ProcessController extends Controller
     	else if($process == 'calling') $this->calling();
     	else if($process == 'filtering') $this->filtering();
         else if($process == 'annotation') $this->annotation();
-
+        else if($process == 'storing_to_db') $this->storing_to_db();
         return;
 
     }
@@ -91,16 +92,22 @@ class ProcessController extends Controller
 
     public function insertProcess($process){
         echo "{{{{{ job $this->job_id with $process }}}}}   ";
-        DB::table('process')->insert([
-            'job_id' => $this->job_id,
-            'process' => $process,
-            'submitted_at' => date('Y-m-d H:i:s'),
-        ]);
+
+        $processDB = new Process;
+        $processDB->job_id = $this->job_id;
+        $processDB->process = $process;
+        $processDB->submitted_at = date('Y-m-d H:i:s');
+        $processDB->save();
+        // Process::insert([
+        //     'job_id' => $this->job_id,
+        //     'process' => $process,
+        //     'submitted_at' => date('Y-m-d H:i:s'),
+        // ]);
     }
 
     public function updateProcess($process, $status, $pid = null, $output = null){
         if($status == 'RUNNING'){
-            DB::table('process')->where([
+            Process::where([
                 ['job_id', '=', $this->job_id],
                 ['process', '=', $process],
             ])->update([
@@ -108,8 +115,9 @@ class ProcessController extends Controller
                 'status' => $status,
                 'output' => $output,
             ]);
-        }else{
-            DB::table('process')->where([
+        }
+        else{
+            Process::where([
                 ['job_id', '=', $this->job_id],
                 ['process', '=', $process],
             ])->update([
@@ -131,7 +139,7 @@ class ProcessController extends Controller
     	}
 
     	$pid = $this->run($command, $stderr);
-        file_put_contents("$this->jobsDir/progress.txt", '15');
+        file_put_contents("$this->jobsDir/1_mapping/command.txt", $command);
         $this->updateProcess('mapping', 'RUNNING', $pid, $output);
     }
 
@@ -147,8 +155,8 @@ class ProcessController extends Controller
  	   	}
 
  	   	$pid = $this->run($command, $stderr);
-        file_put_contents("$this->jobsDir/progress.txt", '35');
-        $this->updateProcess('sorting', 'RUNNING', $pid, $output);
+        file_put_contents("$this->jobsDir/2_sorting/command.txt", $command);
+        $this->updateProcess('sorting', 'RUNNING', $pid, $output.'.bam');
     }
 
     public function calling(){
@@ -163,7 +171,7 @@ class ProcessController extends Controller
  	   	}
 
  	   	$pid = $this->run($command, $stderr);
-        file_put_contents("$this->jobsDir/progress.txt", '70');
+        file_put_contents("$this->jobsDir/3_calling/command.txt", $command);
         $this->updateProcess('calling', 'RUNNING', $pid, $output);
     }
 
@@ -179,7 +187,7 @@ class ProcessController extends Controller
  	   	}
 
  	   	$pid = $this->run($command, $stderr);
-        file_put_contents("$this->jobsDir/progress.txt", '80');
+        file_put_contents("$this->jobsDir/4_filtering/command.txt", $command);
         $this->updateProcess('filtering', 'RUNNING', $pid, $output);
     }
 
@@ -193,7 +201,64 @@ class ProcessController extends Controller
         $command = "sleep 5 && cd '$output' && java -jar $snpeff/snpEff.jar eff -c '$snpeff/snpEff.config' -v 'Glycine_max' '$this->jobsDir/4_filtering/output.vcf' > '{$output}/output.eff.vcf'";
 
         $pid = $this->run($command, $stderr);
-        file_put_contents("$this->jobsDir/progress.txt", '99');
-        $this->updateProcess('annotation', 'RUNNING', $pid, $output);
+        file_put_contents("$this->jobsDir/5_annotation/command.txt", $command);
+        $this->updateProcess('annotation', 'RUNNING', $pid, $output.'/output.eff.vcf');
+    }
+
+    public function storing_to_db(){
+        $this->updateProcess('storing_to_db', 'FINISHED');
+    }
+
+
+    // ** db ** //
+
+    /*
+        GET
+    */
+    public static function getSubmittedJobs(){
+        return Job::where('status', 'WAITING')->get(['id']);
+    }   
+
+    public static function getRunningJobs(){
+        return Job::where('status', 'like' ,'RUNNING%')->get(['id', 'status']);
+    }
+
+    public static function getRunningProcess(){
+        return Process::where('status', 'RUNNING')->get(['id','job_id','pid', 'process']);
+    }
+
+    public static function getRunningJobProcess($process, $job_id){
+        return Process::where([['process', '=', $process], ['job_id', '=', $job_id]])->first(['status']);
+    }
+
+    /*
+        SET
+    */
+    public static function setJobFinished($id){
+        Job::where('id', $id)->update(['status' => 'FINISHED', 'finished_at' => date('Y-m-d H:i:s')]);
+        self::progress($id, ['100', 'FINISHED', date('Y-m-d H:i:s')]);
+    }
+
+    public static function setProcessFinished($job_id, $pid){
+        Process::where([['job_id', '=', $job_id], ['pid', '=', $pid]])->update(['status' => 'FINISHED', 'finished_at' => date('Y-m-d H:i:s')]);
+    }
+
+    public static function updateJobProcess($id, $processID = 1){
+        $list_process = app('config')->get('app')['process'];
+        $process = $list_process[$processID];
+        $status = "RUNNING: $process";
+
+        Job::where('id', $id)->update(['status' => $status]);
+        
+        $progress = ($processID/count($list_process)) * 100;
+        $message = [$progress, $status, date('Y-m-d H:i:s')];
+        self::progress($id, $message);
+    }
+
+    /* SAVE PROGRESS */
+    public static function progress($job_id, $message){
+        $dir = app('config')->get('app')['jobsDir']."/$job_id/progress.txt";
+        $message = implode(";", $message);
+        file_put_contents("$dir", "$message\n", FILE_APPEND);        
     }
 }

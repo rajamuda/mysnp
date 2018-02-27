@@ -492,10 +492,12 @@ return [
         'preparing',
         'mapping',
         'sorting',
+        // 'mark_duplicate'
         // 'base_recalibration'
         'calling',
         'filtering',
         'annotation',
+        'storing_to_db',
         // 'snphylo',
     ],
 

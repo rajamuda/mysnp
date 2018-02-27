@@ -300,22 +300,33 @@ class JobsController extends Controller
         }
     }
 
-    public function getParams(Request $request){
-        return DB::table('default_params')->where('tools', $request->tools)->pluck('default_value');
+    public function getJobs(Request $request){
+        return DB::table('jobs')->where('user_id', $request->user()->id);
+    }
+
+    public function getJobProcessById(Request $request){
+        $job = DB::table('jobs')->where([['id', '=', $request->id], ['user_id', '=', $request->user()->id]])->first();
+        if($job){
+            $process = DB::table('process')->where('job_id', $request->id)->get();
+            foreach($process as $p){
+                $p->file_size = exec("du -h '{$p->output}' | awk '{print $1}'");
+                $p->program_message = shell_exec("cat '".dirname($p->output)."/message.out'") ?? "EMPTY";
+            }
+            // dd($process);
+            return ['job' => $job, 'process' => $process];
+        }else{
+            abort(403, 'Forbidden Access');
+        }
     }
 
     public function coba(Request $request){
-        // $data = parse_ini_file('/home/rajamuda/htdocs/mysnp/resources/jobs/job.ini');
-        // print_r($data);
+       // print_r(\App\Job::where([['id', '=', '1'], ['user_id', '=', '1']])->first());
 
-        // print_r($request->user()->id);
-        // if(is_double(floatval("0.02"))) echo "bener";
-        // if (preg_match('/^(-)?[0-9]+(\.[0-9]+)$/', "-0.001")){
-        //     echo "bener";
-        // }
-        if(!BackgroundProcess::createFromPID(5517)->isRunning()){
-         echo "Gak Jalan";           
-        }
+        // dd(\App\Process::where('job_id', 1)->first()->job->user_id);
+        // return Jobs::where('status', 'WAITING')->get(['id']);
+        $a = DB::table('jobs')->where('status', 'RUNNING: annotation')->get(['id']);
+
+        echo $a[0]->id;
     }
 
 }

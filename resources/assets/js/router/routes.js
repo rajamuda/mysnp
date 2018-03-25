@@ -12,6 +12,9 @@ const Jobs = () => import('~/pages/jobs/index')
 const JobsList = () => import('~/pages/jobs/list')
 const JobsCreate = () => import('~/pages/jobs/create')
 const JobsProcess= () => import('~/pages/jobs/process')
+const Explore = () => import('~/pages/explore/index')
+const ExploreDetail = () => import('~/pages/explore/detail')
+
 
 export default [
   { path: '/', name: 'welcome', component: Welcome },
@@ -33,6 +36,8 @@ export default [
     { path: 'create', name: 'jobs.create', component: JobsCreate },
     { path: 'process/:id', name: 'jobs.process', component: JobsProcess }
   ] },
+  { path: '/explore', name: 'explore', component: Explore },
+  { path: '/explore/detail/:id', name: 'explore.detail', component: ExploreDetail },
 
   { path: '*', component: require('~/pages/errors/404') }
 ]

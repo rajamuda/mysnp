@@ -243,25 +243,37 @@ return [
     | Provide directory address for jobs, tools, and sequence
     |
     */
+    'rootDir' => '/home/rajamuda/htdocs/mysnp',
+
     'toolsDir' => [
         'bowtie2' => '/home/rajamuda/htdocs/mysnp/resources/tools/mapper/bowtie2',
         'bwa' => '/home/rajamuda/htdocs/mysnp/resources/tools/mapper/bwa',
-        'novoalign' => '/home/rajamuda/htdocs/mysnp/resources/tools/mapper/novocraft',
 
         'samtools' => '/home/rajamuda/htdocs/mysnp/resources/tools/caller/samtools',
         'bcftools' => '/home/rajamuda/htdocs/mysnp/resources/tools/caller/bcftools',
         'vcfutils' => '/home/rajamuda/htdocs/mysnp/resources/tools/caller/bcftools/misc',
+        'vcflib' => '/home/rajamuda/htdocs/mysnp/resources/tools/vcflib/bin',
 
         'gatk' => '/home/rajamuda/htdocs/mysnp/resources/tools/caller/gatk',
-        'picard' => '/home/rajamuda/htdocs/mysnp/resources/tools/caller/picard',
 
         'snpeff' => '/home/rajamuda/htdocs/mysnp/resources/tools/annotate/snpEff',
 
         'snphylo' => '/home/rajamuda/htdocs/mysnp/resources/tools/snphylo',
     ],
 
+    'toolsAlias' => [
+        'bt2' => 'Bowtie2',
+        'bwa' => 'BWA',
+        'novo' => 'Novoalign',
+
+        'sam' => 'BCFtools/Samtools',
+        'gatk' => 'GATK',
+        'picard' => 'Picard',
+    ],
+
     'jobsDir' => '/home/rajamuda/htdocs/mysnp/resources/jobs',
     'sequenceDir' => '/home/rajamuda/htdocs/mysnp/resources/sequence',
+    'dbSnpDir' => '/home/rajamuda/htdocs/mysnp/resources/sequence/dbsnp',
 
 
     /*

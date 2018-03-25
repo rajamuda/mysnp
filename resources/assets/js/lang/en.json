@@ -47,6 +47,10 @@
   "select_one": "Please select one",
   "advanced_param": "Advanced Parameters Settings",
 
+  "resume": "Resume",
+  "snp_stat": "Show SNP Statistics",
+  "job_config": "Job Configuration",
+
   "status": "Status",
   "start_date": "Start date",
   "finish_date": "Finish date",
@@ -58,6 +62,26 @@
   "sorting": "Sorting SAM to BAM",
   "calling": "SNP Calling",
   "filtering": "SNP Filtering",
-  "annotation": "Annotate Detected SNP",
-  "storing_to_db": "Store Process into Database"
+  "annotation": "Annotating Detected SNP",
+  "storing_to_db": "Storing Identified SNP into Database",
+
+  "explore": "Explore",
+  "explore_snp" : "Explore Identified SNP",
+  "chrom": "Chromosome",
+  "pos": "Position",
+  "ref": "Reference",
+  "alt": "Alternate",
+  "rs_id": "rs ID",
+  "format": "Format",
+  "info": "Info",
+  "filter": "Filter",
+  "show": "Show",
+  "option": "Option",
+  "qual": "Quality",
+  "apply": "Apply",
+  "total_row": "Total Row",
+  "detail": "Detail",
+  "detail_snp": "SNP Detail",
+  "flank_area": "SNP Flanking Area",
+  "reset": "Reset"
 }

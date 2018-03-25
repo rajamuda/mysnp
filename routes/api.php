@@ -23,8 +23,18 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::patch('settings/profile', 'Settings\ProfileController@update');
     Route::patch('settings/password', 'Settings\PasswordController@update');
 
+    Route::get('jobs/all', 'Jobs\JobsController@getJobs');
     Route::post('jobs/create', 'Jobs\JobsController@create');
+    Route::post('jobs/{id}/update', 'Jobs\JobsController@update');
     Route::get('jobs/{id}/process', 'Jobs\JobsController@getJobProcessById');
+    Route::patch('jobs/{id}/cancel', 'Jobs\JobsController@cancelJobProcess');
+    Route::patch('jobs/{id}/resume', 'Jobs\JobsController@resumeJobProcess');
+
+    Route::get('data/sequences', 'Jobs\JobsController@getSequences');
+    Route::get('data/snpeff', 'Jobs\JobsController@snpEffDB');
+
+    Route::get('db-snp/{job_id}', 'ExploreController@getSnpInfo');
+    Route::get('db-snp/detail/{id}', 'ExploreController@getSnpDetail');
 
     Route::get('test', 'Jobs\JobsController@coba');
 

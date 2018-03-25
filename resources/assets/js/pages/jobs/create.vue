@@ -19,10 +19,10 @@
 					<div class="form-group row">
 						<label v-tooltip="'Sequences references If you have new references, you can upload in \'Upload\' section'" class="col-md-3 col-form-label text-md-right">{{ $t('seq_references') }}</label>
 						<div class="col-md-7">
-							<select v-model="form.references" name="references" class="form-control" :class="{ 'is-invalid': form.errors.has('references') }">
+							<select v-model="form.references" name="references" class="custom-select" :class="{ 'is-invalid': form.errors.has('references') }">
 								<option disabled value="">{{ $t('select_one') }}</option>
-								<option v-for="opt in refopts" v-bind:value="opt.value">
-									{{ opt.text }}
+								<option v-for="opt in refopts" v-bind:value="opt.name">
+									{{ opt.name }}
 								</option>
 							</select>
               <has-error :form="form" field="references"/>
@@ -33,7 +33,7 @@
 					<div class="form-group row">
 						<label v-tooltip="'Type of reads, whether it single reads or paired reads'" class="col-md-3 col-form-label text-md-right">{{ $t('seq_reads_type') }}</label>
 						<div class="col-md-7">
-							<select v-model="form.reads_type" name="reads_type" class="form-control" :class="{ 'is-invalid': form.errors.has('reads_type') }">
+							<select v-model="form.reads_type" name="reads_type" class="custom-select" :class="{ 'is-invalid': form.errors.has('reads_type') }">
 								<option v-for="opt in reads_type_opts" v-bind:value="opt.value">
 									{{ opt.text }}
 								</option>
@@ -46,7 +46,8 @@
 					<div class="form-group row">
 						<label v-tooltip="'Choose sequence from NGS machine reads. You can add more than one reads. If you have new reads, you can upload in \'Upload\' section'" class="col-md-3 col-form-label text-md-right">{{ $t('seq_reads') }}</label>
 						<div class="col-md-7">
-							<multi-select :options="reads_opts" :selected-options="form.reads1" placeholder="Select one or more" class="form-control" :is-error="form.errors.has('reads1')" @select="onSelectReads1"></multi-select>
+							<!-- <multi-select :options="reads_opts" :selected-options="form.reads1" placeholder="Select one or more" class="custom-select" :is-error="form.errors.has('reads1')" @select="onSelectReads1"></multi-select> -->
+							<multiselect v-model="form.reads1" :options="reads_opts" :multiple="true" :close-on-select="false" :clear-on-select="false" :hide-selected="true" :preserve-search="true" placeholder="Select one or more" label="name" track-by="name"></multiselect>
               <has-error :form="form" field="reads1"/>
 						</div>
 					</div>
@@ -55,7 +56,9 @@
 						<div class="form-group row">
 							<label v-tooltip="'Choose sequence from NGS machine reads. You can add more than one reads. If you have new reads, you can upload in \'Upload\' section'" class="col-md-3 col-form-label text-md-right">{{ $t('seq_reads2') }}</label>
 							<div class="col-md-7">
-								<multi-select :options="reads_opts" :selected-options="form.reads2" placeholder="Select one or more" class="form-control" :is-error="form.errors.has('reads2')" @select="onSelectReads2"></multi-select>
+								<!-- <multi-select :options="reads_opts" :selected-options="form.reads2" placeholder="Select one or more" class="custom-select" :is-error="form.errors.has('reads2')" @select="onSelectReads2"></multi-select> -->
+								<multiselect v-model="form.reads2" :options="reads2_opts" :multiple="true" :close-on-select="false" :clear-on-select="false" :hide-selected="true" :preserve-search="true" placeholder="Select one or more" label="name" track-by="name"></multiselect>
+
 	              <has-error :form="form" field="reads2"/>
 							</div>
 						</div>
@@ -65,12 +68,7 @@
 					<div class="form-group row">
 						<label v-tooltip="'Choose a database to annotate variant'" class="col-md-3 col-form-label text-md-right">{{ $t('seq_db_annotate') }}</label>
 						<div class="col-md-7">
-							<select v-model="form.db_annotate" name="db_annotate" class="form-control" :class="{ 'is-invalid': form.errors.has('db_annotate') }">
-								<option disabled value="">{{ $t('select_one') }}</option>
-								<option v-for="opt in db_annotate_opts" v-bind:value="opt.value">
-									{{ opt.text }}
-								</option>
-							</select>
+							<multiselect v-model="form.db_annotate" id="ajax" label="text" track-by="text" placeholder="Search snpEff Annotation DB" open-direction="bottom" :options="db_annotate_opts" :multiple="false" :searchable="true" :loading="db_loading" :internal-search="true" :close-on-select="true" :options-limit="300" :limit="3" :max-height="600" :show-no-results="false" @search-change="populateSnpEffDB"></multiselect>
               <has-error :form="form" field="db_annotate"/>
 						</div>
 					</div>
@@ -79,7 +77,7 @@
 					<div class="form-group row">
 						<label v-tooltip="'Choose an alignment tools to map references with each reads.'" class="col-md-3 col-form-label text-md-right">{{ $t('seq_mapper') }}</label>
 						<div class="col-md-7">
-							<select v-model="form.seq_mapper" name="seq_mapper" class="form-control" :class="{ 'is-invalid': form.errors.has('seq_mapper') }">
+							<select v-model="form.seq_mapper" name="seq_mapper" class="custom-select" :class="{ 'is-invalid': form.errors.has('seq_mapper') }">
 								<option v-for="opt in seq_mapper_opts" v-bind:value="opt.value">
 									{{ opt.text }}
 								</option>
@@ -92,7 +90,7 @@
 					<div class="form-group row">
 						<label v-tooltip="'Choose a variant calling tools to identify variant'" class="col-md-3 col-form-label text-md-right">{{ $t('seq_snp_caller') }}</label>
 						<div class="col-md-7">
-							<select v-model="form.snp_caller" name="reads_type" class="form-control" :class="{ 'is-invalid': form.errors.has('snp_caller') }">
+							<select v-model="form.snp_caller" name="reads_type" class="custom-select" :class="{ 'is-invalid': form.errors.has('snp_caller') }">
 								<option v-for="opt in snp_caller_opts" v-bind:value="opt.value">
 									{{ opt.text }}
 								</option>
@@ -102,12 +100,12 @@
 					</div>
 
 					<!-- SNP Phylogenetic Tree Generator -->
-					<div class="form-group row">
+<!-- 					<div class="form-group row">
 						<label v-tooltip="'Tools to generate phylogenetic tree of SNP'" class="col-md-3 col-form-label text-md-right">{{ $t('phylo_generator') }}</label>
 						<div class="col-md-7">
 							<input type="text" value="SNPhylo" class="form-control" disabled />
 						</div>
-					</div>
+					</div> -->
 
 					<!-- Advanced -->
 					<v-button type="default" native-type="button" class="col-md-12 collapsed" data-toggle="collapse" data-target="#advancedParameters">{{ $t('advanced_param') }} <fa icon="caret-square-down" fixed-width/></v-button>
@@ -131,9 +129,6 @@
 							    <a v-if="form.snp_caller == 'sam'" class="nav-item nav-link" id="nav-vcfutils-tab" data-toggle="tab" href="#nav-vcfutils" role="tab" aria-controls="nav-vcfutils" aria-selected="false">VCFutils (Filtering)</a>
 							    <a v-else-if="form.snp_caller == 'gatk'" class="nav-item nav-link" id="nav-picard-tab" data-toggle="tab" href="#nav-picard" role="tab" aria-controls="nav-picard" aria-selected="false">Picard (Filtering)</a>
 							    <a v-else>Nothing</a>
-
-							    <!-- SNPhylo -->
-							    <a class="nav-item nav-link" id="nav-phylo-tab" data-toggle="tab" href="#nav-phylo" role="tab" aria-controls="nav-phylo" aria-selected="false">SNPhylo</a>
 							  </div>
 							</nav>
 							<div class="tab-content" id="nav-tabContent">
@@ -481,7 +476,6 @@
 							  </div>
 							  <div v-else>Nothing</div>
 
-							  <div class="tab-pane fade" id="nav-phylo" role="tabpanel" aria-labelledby="nav-phylo-tab">...</div>
 							</div>
 					  </div>
 					</div>
@@ -502,12 +496,16 @@
 
 <script>
 	import Form from 'vform'
+	import axios from 'axios'
 	import Vue from 'vue'
 	import VTooltip from 'v-tooltip'
   import { MultiSelect } from 'vue-search-select'
+  import Multiselect from 'vue-multiselect'
+  import 'vue-multiselect/dist/vue-multiselect.min.css'
 
 	Vue.use(VTooltip)
 	Vue.component('multi-select', MultiSelect)
+	Vue.component('multiselect', Multiselect)
 
 	export default{
 		scrollToTop: false,
@@ -539,41 +537,57 @@
 	      	{text: 'Paired-End', value: 'pe'}
 	      ],
 	      reads_opts: [],
+	      reads2_opts: [],
 		    db_annotate_opts: [],
 		    seq_mapper_opts: [],
 		    snp_caller_opts: [],
+
+		    db_loading: false,
 	  }),
 
 	  methods: {
-	  	populateOptions () {
-	  		var data = [
-	  			{ text: 'One', value: 'A' },
-		      { text: 'Two', value: 'B' },
-		      { text: 'Three', value: 'C' }
-		    ]
+	  	async populateOptions () {
 
-		    var mapper = [
+		    const {data} = await axios.get('/api/data/sequences');
+
+		    const mapper = [
 		    	{ text: 'Bowtie2', value: 'bt2' },
-		    	{ text: 'BWA', value: 'bwa' },
-		    	{ text: 'Novoalign', value: 'novo' }
+		    	{ text: 'BWA', value: 'bwa' }
 		    ]
 
-		    var caller = [
+		    const caller = [
 		    	{ text: 'Bcftools (Samtools)', value: 'sam' },
 		    	{ text: 'GATK', value: 'gatk' }
 		    ]
 
-		    this.refopts = data
-		    this.reads_opts = data
-		    this.db_annotate_opts = data
+		    this.refopts = data.refs
+		    this.reads_opts = data.reads
+		    this.reads2_opts = data.reads2
 		    this.seq_mapper_opts = mapper
 		    this.snp_caller_opts = caller
+	  	},
+
+	  	populateSnpEffDB (query) {
+	  		this.db_loading = true
+	  		axios.get('/api/data/snpeff?query='+query)
+	  			.then(({data}) => {
+	  				this.db_annotate_opts = data
+	  				this.db_loading = false
+	  			})
+	  			.catch(e => {
+	  				console.error(e)
+	  			})
 	  	},
 
 	  	create () {
 	  		this.form.post('/api/jobs/create')
 	  			.then(({data}) => {
 	  				console.log(data)
+	  				const id = data.job_id
+	  				this.$router.push({name: 'jobs.process', params: {id}})
+	  			})
+	  			.catch((e) => {
+	  				console.error(e)
 	  			})
 	  	},
 

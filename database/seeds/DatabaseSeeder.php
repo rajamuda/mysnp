@@ -115,5 +115,44 @@ class DatabaseSeeder extends Seeder
 		];*/
 
 		// DB::table('default_params')->insert($gatk);
+		$sequences = [
+			[
+				'name' => 'glycine_max_sim_100K.fastq',
+				'type' => 'reads',
+				'user_id' => 1,
+				'created_at' => date('Y-m-d H:i:s'),
+		        'updated_at' => date('Y-m-d H:i:s'),
+			],
+			[
+				'name' => 'glycine_max_chr10.fa',
+				'type' => 'references',
+				'user_id' => 1,
+				'created_at' => date('Y-m-d H:i:s'),
+		        'updated_at' => date('Y-m-d H:i:s'),
+			],
+			[
+				'name' => 'Saccharomyces_cerevisiae.fa',
+				'type' => 'references',
+				'user_id' => 1,
+				'created_at' => date('Y-m-d H:i:s'),
+		        'updated_at' => date('Y-m-d H:i:s'),
+			],
+			[
+				'name' => 'yeast_1.fastq',
+				'type' => 'reads',
+				'user_id' => 1,
+				'created_at' => date('Y-m-d H:i:s'),
+		        'updated_at' => date('Y-m-d H:i:s'),
+			],
+			[
+				'name' => 'yeast_2.fastq',
+				'type' => 'reads',
+				'user_id' => 1,
+				'created_at' => date('Y-m-d H:i:s'),
+		        'updated_at' => date('Y-m-d H:i:s'),
+			],
+		];
+
+		// DB::table('sequences')->insert($sequences);
     }
 }

@@ -6,13 +6,67 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use WriteiniFile\WriteiniFile;
 use Illuminate\Support\Facades\DB;
-use Cocur\BackgroundProcess\BackgroundProcess;
+
+use App\Job;
+use App\Process;
+use App\Sequence;
 
 class JobsController extends Controller
 {
-    // get all jobs created by user
-    public function get(Request $request){
+
+    /** 
+    | Router Specific Controller
+    |--------------------------------------
+    | snpEffDB          : return JSON containing SnpEff DB
+    | create            : insert job submitted by user, validate each input, insert into DB
+    | update            : update parameters if current job status is CANCELED or FINISHED
+    | getJobs           : get all jobs by current user
+    | getJobProcessById : get all processes from current job
+    | cancelJobProcess  : cancel current running job
+    | resumeJobProcess  : resume current canceled job
+    **/
+
+    // get sequences
+    public function getSequences(Request $request){
         $user_id = $request->user()->id;
+
+        $refs = Sequence::where(function($q) use($user_id) { $q->where('user_id', $user_id)->orWhere('public', true); })->where('type', 'references')->get(['name']);
+
+        $reads = Sequence::where(function($q) use($user_id) { $q->where('user_id', $user_id)->orWhere('public', true); })->where('type', 'reads')->get(['name']);
+
+        $reads_pair = Sequence::where(function($q) use($user_id) { $q->where('user_id', $user_id)->orWhere('public', true); })->where('type', 'reads_pair')->get(['name']);
+
+        return ['refs' => $refs, 'reads' => $reads, 'reads2' => $reads_pair];
+    }
+
+    // get snpeff DB
+    public function snpEffDB(Request $request){
+        header('Content-Type: application/json');
+
+        $db = config('app.toolsDir.snpeff')."/snpEff.database";
+        $query = $request->query('query');
+
+        $count = 0;
+        if(file_exists($db)){
+            $handle = fopen($db, 'r');
+            echo "[";
+            while(($line = fgets($handle)) !== false){
+                $data = explode(";", $line);
+
+                $data[1] = substr($data[1],0,-1);
+
+                if(stripos($data[1].$data[0], $query) !== false){
+                    if($count++ != 0) echo ",";
+                    if($data[0] == $data[1]){
+                        echo json_encode(['text' => $data[0], 'value' => $data[0]]);
+                    }else{
+                        echo json_encode(['text' => $data[1]." (".$data[0].")", 'value' => $data[0]]);
+                    }
+                }
+            }
+            echo "]";
+        }
+        
 
     }
 
@@ -28,7 +82,7 @@ class JobsController extends Controller
             'reads1' => 'required',
             'reads2' => 'required_if:reads_type,==,pe',
             'db_annotate' => 'required',
-            'seq_mapper' => 'required|in:bt2,bwa,novo',
+            'seq_mapper' => 'required|in:bt2,bwa',
             'snp_caller' => 'required|in:sam,gatk',
         ]);
 
@@ -38,9 +92,9 @@ class JobsController extends Controller
 		| Title 			: $input['title']
 		| References		: $input['references']
 		| Reads Type		: $input['reads_type']
-		| Reads				: $input['reads1'][~index~]['value']
-		| Reads 2 (pair)	: $input['reads2'][~index~]['value']
-		| Annotation DB		: $input['db_annotate']
+		| Reads				: $input['reads1'][~index~]['name']
+		| Reads 2 (pair)	: $input['reads2'][~index~]['name']
+		| Annotation DB		: $input['db_annotate']['value']
 		| Alignment Tools	: $input['seq_mapper']
 		| SNP Caller		: $input['snp_caller']
 		| -----------------------------------------------------
@@ -48,7 +102,8 @@ class JobsController extends Controller
 		|
     	*/
     	$input = $request->all();
-        $defaultParams = app('config')->get('app')['defaultParams'];
+        // print_r($input);die();
+        $defaultParams = config('app.defaultParams');
         
         /*
         | Processing jobs request
@@ -103,8 +158,6 @@ class JobsController extends Controller
                     $mapperOptions['sampe'] .= "$key ".$getParams['sampe'][$key]." ";                    
                 }
             }
-
-        }else{ // Novoalign
 
         }
 
@@ -180,16 +233,16 @@ class JobsController extends Controller
             }
         }
 
-        $snphyloOptions = "";
+        // $snphyloOptions = "";
 
         $reads1 = [];
         foreach($input['reads1'] as $r){
-            array_push($reads1, $r['value']);
+            array_push($reads1, $r['name']);
         }
 
         $reads2 = [];
         foreach($input['reads2'] as $r){
-            array_push($reads2, $r['value']);
+            array_push($reads2, $r['name']);
         }
 
         $data = [
@@ -198,13 +251,13 @@ class JobsController extends Controller
                 'references' => $input['references'],
                 'reads1' => implode(',', $reads1),
                 'reads2' => implode(',', $reads2),
-                'annotatedb' => $input['db_annotate'],
+                'db_snp' => Sequence::select('dbSnp')->where('name', $input['references'])->first()->dbSnp, // ?? $input['db_snp']
+                'annotatedb' => $input['db_annotate']['value'],
                 'mapper' => $input['seq_mapper'],
                 'caller' => $input['snp_caller'],
                 'mapper_options' => $mapperOptions,
                 'caller_options' => $callerOptions,
                 'filter_options' => $filterOptions,
-                'snphylo_options' => $snphyloOptions,
             ]
         ];
 
@@ -224,9 +277,11 @@ class JobsController extends Controller
 
             $job_id = DB::getPdo()->lastInsertId();
 
-            $jobsDir = app('config')->get('app')['jobsDir']."/".$job_id;
+            $jobsDir = config('app.jobsDir')."/".$job_id;
             
-            if(mkdir($jobsDir, 0755)){
+            $old = umask(0);
+            if(mkdir($jobsDir, 0777)){
+                umask($old);
                 $ini = new WriteiniFile("$jobsDir/job.ini");
                 $ini->create($data);
                 $ini->write();
@@ -234,22 +289,150 @@ class JobsController extends Controller
 
             DB::commit();
             
-            return json_encode(["status" => true, "message"=> "Job submitted"]);
+            return ["status" => true, "message"=> "Job submitted", "job_id" => $job_id];
           // return json_encode($input);
         }catch(\Exception $e){
             DB::rollback();
-            return json_encode(["status" => false, "message"=> $e]);        
+            return ["status" => false, "message"=> $e];        
         }
         // return "benar";
     }
 
     // update submitted and unprocessed jobs
     public function update(Request $request){
-
+        // TODO
     }
 
+    public function getJobs(Request $request){
+        return Job::where('user_id', $request->user()->id)->get();
+    }
+
+    public function getJobProcessById(Request $request){
+        try{
+            $job = Job::where('id', $request->id)->where('user_id', $request->user()->id)->firstOrFail();
+
+            $job->mapper = config('app.toolsAlias')[$job->mapper];
+            $job->caller = config('app.toolsAlias')[$job->caller];
+
+            foreach($job->process as $process){
+                $process->file_size = exec("du -h '{$process->output}' | awk '{print $1}'");
+                $process->program_message = shell_exec("cat '".dirname($process->output)."/message.out'") ?? "EMPTY";   
+            }
+
+            $job_config = parse_ini_file(config('app.jobsDir')."/".$job->id."/job.ini");
+            $config_txt = "";
+
+            $config_txt .= "<b><u>Sequences</u></b><br/>";
+            $config_txt .= "Read(s) to identify SNP: <code>".$job_config['reads1']."</code>";
+
+            if($job_config['reads2'] != ""){
+                $config_txt .= " -- paired with <code>".$job_config['reads2']."</code>";
+            }
+
+            $config_txt .="<br/>Reference Sequence: <code>".$job_config['references']."</code><br/>";
+
+            $config_txt .= "<br/><b><u>Tools Configuration</u></b><br/>";
+            if($job_config['mapper'] == 'bt2'){ // Bowtie2
+                $config_txt .= "$job->mapper: <code>'".$job_config['mapper_options']."'</code><br/>";
+            }else{ // BWA
+
+            }
+
+            if($job_config['caller'] == 'sam'){ // Bcftools
+                $config_txt .= "$job->caller: <code>'".$job_config['caller_options']."'</code><br/>";
+                $config_txt .= "VCFutils VarFilter: <code>'".$job_config['filter_options']."'</code>";
+            }else{ // GATK
+
+            }
+
+            return ['job' => $job, 'process' => $job->process, 'config' => $config_txt];
+
+        }catch(\Illuminate\Database\Eloquent\ModelNotFoundException $e){
+            abort(403, 'Forbidden Access');
+        }catch(\Exception $e){
+            abort(500, 'Error(s) Occured with '.$e->getMessage());
+        }
+    }
+    
+    public function cancelJobProcess(Request $request){
+        try{
+            $job = Job::findOrFail($request->id)->where('user_id', $request->user()->id)->first();
+
+            if($job){
+                if($job->status == 'WAITING'){
+                    $job->status = "CANCELED";
+                    $job->save();
+                }
+                
+                if(substr($job->status,0,7) == 'RUNNING'){
+                    foreach($job->process as $process){
+                        if(substr($job->status, 9) == $process->process){
+                            JobProcessController::killProcess($process->pid);
+                            $process->status = "CANCELED";
+                            $process->save();
+                        }
+                    } 
+                    $job->status = "CANCELED";
+                    // if(!$job->save()){
+                    //     abort(500, 'Something went wrong');
+                    // } 
+                    $job->save();
+                }
+                // return $job;
+            }else{
+                abort(403, 'Forbidden Access');
+            }
+
+        }catch(\Illuminate\Database\Eloquent\ModelNotFoundException $e){
+            abort(403, 'Forbidden Access');
+        }catch(\Exception $e){
+            abort(500, 'Error(s) Occured with '.$e->getMessage());
+        }
+    }
+
+    public function resumeJobProcess(Request $request){
+        try{
+            $job = Job::findOrFail($request->id)->where('user_id', $request->user()->id)->first();
+
+            if($job){
+                if($job->status == 'CANCELED'){
+
+                    /* METHOD 1*/
+                    $process_elapsed = count($job->process);
+                    if($process_elapsed > 1){
+                        $prev_process = $job->process[$process_elapsed-2]->process;
+                    }else{
+                        $prev_process = config('app.process')[1]; // mapping
+                    }
+
+                    // Destroy canceled process (remove from DB);
+                    Process::destroy($job->process[$process_elapsed-1]->id);
+
+                    /* METHOD 2 (permission issue) */
+                    // $processID = array_search($current_process, config('app.process'));
+                    // $job_process = new JobProcessController($job->id);
+                    // $job_process->start($processID);
+
+                    $job->status = "RUNNING: $prev_process";
+                    $job->save();
+                }
+            }else{
+                abort(403, 'Forbidden Access');
+            }
+            
+        }catch(\Illuminate\Database\Eloquent\ModelNotFoundException $e){
+            abort(403, 'Forbidden Access');
+        }catch(\Exception $e){
+            abort(500, 'Error(s) Occured with '.$e->getMessage());
+        }
+    }
+
+
+    /*
+        | Validate parameters that user submitted |
+    */
     public function validateSubmittedParams($submittedParams, $tools){
-        $defaultParamsType = app('config')->get('app')['defaultParamsType'][$tools];
+        $defaultParamsType = config('app.defaultParamsType')[$tools];
         foreach($defaultParamsType as $key => $value){
 
             // exclude
@@ -300,33 +483,8 @@ class JobsController extends Controller
         }
     }
 
-    public function getJobs(Request $request){
-        return DB::table('jobs')->where('user_id', $request->user()->id);
-    }
-
-    public function getJobProcessById(Request $request){
-        $job = DB::table('jobs')->where([['id', '=', $request->id], ['user_id', '=', $request->user()->id]])->first();
-        if($job){
-            $process = DB::table('process')->where('job_id', $request->id)->get();
-            foreach($process as $p){
-                $p->file_size = exec("du -h '{$p->output}' | awk '{print $1}'");
-                $p->program_message = shell_exec("cat '".dirname($p->output)."/message.out'") ?? "EMPTY";
-            }
-            // dd($process);
-            return ['job' => $job, 'process' => $process];
-        }else{
-            abort(403, 'Forbidden Access');
-        }
-    }
-
     public function coba(Request $request){
-       // print_r(\App\Job::where([['id', '=', '1'], ['user_id', '=', '1']])->first());
-
-        // dd(\App\Process::where('job_id', 1)->first()->job->user_id);
-        // return Jobs::where('status', 'WAITING')->get(['id']);
-        $a = DB::table('jobs')->where('status', 'RUNNING: annotation')->get(['id']);
-
-        echo $a[0]->id;
+        return Sequence::select('dbSnp')->where('name', 'Saccharomyces_cerevisiae.fa')->first()->dbSnp ?? "NULL";
     }
 
 }

@@ -28,6 +28,11 @@
                 {{ $t('jobs') }}
               </router-link>
             </li>
+            <li class="nav-item">
+              <router-link :to="{ name: 'explore' }" class="nav-link" active-class="active">
+                {{ $t('explore') }}
+              </router-link>
+            </li>
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle text-dark"
                 href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

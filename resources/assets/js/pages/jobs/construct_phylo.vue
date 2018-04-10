@@ -103,6 +103,7 @@
 				this.form.post('/api/jobs/phylo/construct')
 					.then(({ data }) => {
 						console.log(data)
+	  				this.$router.push({name: 'jobs.view_phylo', params: {id: data.phylo_id}})
 					})
 					.catch((e) => {
 						console.error(e)

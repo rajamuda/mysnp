@@ -121,6 +121,10 @@ class ExploreController extends Controller
 
         $db_snp = DB::table('db_snp')->where([['user_id', '=', $request->user()->id],['id', '=', $id]])->first();
 
+        if(!$db_snp){
+            abort(404, 'Not found or not yours');
+        }
+
         /*
             Parse FORMAT
         */

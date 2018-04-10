@@ -3,6 +3,8 @@
   "cancel": "Cancel",
   "error_alert_title": "Oops...",
   "error_alert_text": "Something went wrong! Please try again.",
+  "warning_forbidden_access": "Forbidden Access",
+  "warning:forbidden_text": "You don't have rights to access this page",
   "token_expired_alert_title": "Session Expired!",
   "token_expired_alert_text": "Please log in again to continue.",
   "login": "Log In",

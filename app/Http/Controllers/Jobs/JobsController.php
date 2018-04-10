@@ -352,7 +352,7 @@ class JobsController extends Controller
             return ['job' => $job, 'process' => $job->process, 'config' => $config_txt];
 
         }catch(\Illuminate\Database\Eloquent\ModelNotFoundException $e){
-            abort(403, 'Forbidden Access');
+            abort(404, 'Not Found or Not yours');
         }catch(\Exception $e){
             abort(500, 'Error(s) Occured with '.$e->getMessage());
         }

@@ -153,7 +153,10 @@
 					this.job_process = data.process
 					this.config = data.config
 				}catch(e){
-					console.error(e)
+					// console.error(e)
+					if(e.response.status === 404 || e.response.status === 500){
+						this.$router.go(-1)
+					}
 				}
 			},
 

@@ -41,11 +41,11 @@ class PhyloConstruct extends Command
         // artisan jobs:construct-phylo 1
         // mean: construct phylogenetic tree using configuration with id 1 in db phylo
         $phylo_id = $this->argument('id');
-        $config = Phylo::findOrFail($phylo_id);
+        $phylo = Phylo::findOrFail($phylo_id);
 
-        $method = $config->method;
-        $samples = explode(",", $config->samples); // comma-separated, containing information about job id
-        $refseq = config('app.sequenceDir')."/references/".$config->refseq->name; // todo
+        $method = $phylo->method;
+        $samples = explode(",", $phylo->samples); // comma-separated, containing information about job id
+        $refseq = config('app.sequenceDir')."/references/".$phylo->refseq->name; // todo
 
         $job_dir = config('app.jobsDir');        
         $variants = "";
@@ -62,5 +62,9 @@ class PhyloConstruct extends Command
 
             shell_exec($command);
         }
+
+        $phylo->status = "FINISHED";
+        $phylo->finished_at = date("Y-m-d H:i:s");
+        $phylo->save();
     }
 }

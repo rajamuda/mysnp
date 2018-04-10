@@ -36,6 +36,17 @@ axios.interceptors.response.use(response => response, error => {
     })
   }
 
+  if (status == 403) {
+    swal({
+      type: 'warning',
+      title: i18n.t('warning_forbidden_access'),
+      text: i18n.t('warning_forbidden_text'),
+      reverseButtons: true,
+      confirmButtonText: i18n.t('ok'),
+      cancelButtonText: i18n.t('cancel')
+    })
+  }
+
   if (status === 401 && store.getters['auth/check']) {
     swal({
       type: 'warning',

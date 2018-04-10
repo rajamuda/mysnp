@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Http\Controllers\Jobs\JobProcessController as JobProcess;
+use App\Http\Controllers\Jobs\PhyloController as Phylo;
 use Illuminate\Support\Facades\DB;
 
 class RunJobs extends Command
@@ -85,6 +86,13 @@ class RunJobs extends Command
                     JobProcess::setProcessFinished($process->job_id, $process->pid);
                     echo date('Y-m-d H:i:s')." Finishing process '{$process->process}' of job '{$process->job_id}' with pid '{$process->pid}'\n";
                 }
+            }
+
+            // cek jobs untuk konstruksi pohon filogenetik dan jalankan
+            $submittedPhylo = Phylo::getSubmittedPhylo();
+            foreach($submittedPhylo as $phylo){
+                echo date('Y-m-d H:i:s')." Starting constructing phylo {$phylo->id}...\n";
+                Phylo::runPhyloConstruction($phylo->id);
             }
 
             sleep(5);

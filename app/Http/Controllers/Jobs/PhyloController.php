@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Jobs;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Jobs\JobProcessController;
 use App\Phylo;
 use App\Sequence;
 use App\Job;
@@ -30,17 +31,22 @@ class PhyloController extends Controller
     }
 
     public function viewPhylo(Request $request){
-    	$phylo_id = $request->id;
+    	$phylo_id = (int)$request->id;
     	$user_id = $request->user()->id;
 
-    	$phylo = Phylo::findOrFail($phylo_id)->first();
+    	$phylo = Phylo::findOrFail($phylo_id);
     	if($phylo->user_id == $user_id){
-    		$phylo_dir = config('app.phyloDir')."/$phylo_id";
-    		$distance_matrix = json_decode(file_get_contents($phylo_dir."/distance_matrix.json"), true);
-    		$image = file_get_contents($phylo_dir."/phylo_tree.svg");
-
-    		return ['distance_matrix' => $distance_matrix, 'tree' => $image];
-    	}else{
+            if($phylo->status === "FINISHED"){
+        		$phylo_dir = config('app.phyloDir')."/$phylo_id";
+        		$distance_matrix = json_decode(file_get_contents($phylo_dir."/distance_matrix.json"), true);
+        		$image = file_get_contents($phylo_dir."/phylo_tree.svg");
+                return ['status' => 'FINISHED', 'distance_matrix' => $distance_matrix, 'tree' => $image];
+            }else if($phylo->status === "WAITING" || $phylo->status === "RUNNING"){
+                return ['status' => 'RUNNING'];
+            }else{
+                abort(404, 'File not found');
+            }
+        }else{
     		abort(403, 'Forbidden Access');
     	}
     }	
@@ -131,11 +137,13 @@ class PhyloController extends Controller
 	    	$phylo->refseq_id = $refseq_id;
 	    	$phylo->samples = $samples;
 	    	$phylo->method = $method;
-	    	$phylo->status = "RUNNING";
+	    	$phylo->status = "WAITING";
 	    	$phylo->submitted_at = date("Y-m-d H:i:s");
 	    	$phylo->save();
 
-            // to do: panggil command untuk menajalankan perintah construct phylo
+            // panggil command untuk menajalankan perintah construct phylo
+
+            return ["status" => true, "message"=> "Job submitted", 'phylo_id' => $phylo->id];
 	    }else{
 	    	$submit_date = date_parse_from_format('Y-m-d H:i:s', $isExist->submitted_at);
 	    	$submit_date = "{$submit_date['year']}{$submit_date['month']}{$submit_date['day']}{$submit_date['hour']}{$submit_date['minute']}";
@@ -148,4 +156,23 @@ class PhyloController extends Controller
     	$data = Phylo::where([['user_id', '=', $info['user_id']],['refseq_id', '=', $info['refseq_id']], ['samples', '=', $info['samples']], ['method', '=', $info['method']]])->first();
     	return $data;
     }
+
+    public static function getSubmittedPhylo(){
+        return Phylo::where('status', 'WAITING')->get();
+    }
+
+
+    public static function runPhyloConstruction($id){ 
+        $phylo = Phylo::findOrFail($id);
+        $artisan = config('app.rootDir')."/artisan";
+        $command = "sleep 5 && $artisan jobs:construct-phylo $id > /tmp/status_phylo";
+
+        $jp = new JobProcessController;
+        $pid = $jp->runProcess($command, '/tmp/run_phylo');
+
+        $phylo->status = "RUNNING";
+        $phylo->pid = $pid;
+        $phylo->save();
+    }
+
 }

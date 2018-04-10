@@ -1,33 +1,19 @@
 <?php
 
-$vcf_file = "/home/rajamuda/htdocs/mysnp/resources/jobs/3/4_filtering/output.vcf";
-$vcf_handle = fopen($vcf_file, "r");
-$vcf_data = [];
+$usmap = '/home/rajamuda/htdocs/mysnp/resources/phylo-tree/1/phylo_tree.svg';
+$im = new Imagick();
+$svg = file_get_contents($usmap);
 
-$refseq = "/home/rajamuda/htdocs/mysnp/resources/sequence/references/Saccharomyces_cerevisiae.fa";
+$im->readImageBlob($svg);
 
-$vcfprimers = "/home/rajamuda/htdocs/mysnp/resources/tools/vcflib/bin/vcfprimers";
-$flank_file = "/home/rajamuda/htdocs/mysnp/resources/jobs/3/4_filtering/output.vcf.flank.fa";
-$flank_length = 100;
+$im->setImageFormat("png24");
+// $im->resizeImage(720, 445, imagick::FILTER_LANCZOS, 1);  /*Optional, if you need to resize*/
 
-$command = "$vcfprimers -f '{$refseq}' -l {$flank_length} '{$vcf_file}' > '{$flank_file}'";
-shell_exec($command);
 
-// echo $command;
-// $flank_handle = fopen($flank_file, "r");
-// while(!feof($vcf_handle)){
-// 	$line = fgets($vcf_handle, 4096);
+header('Content-type: image/png');
+echo $im;
 
-// 	$line = explode("\t", $line);
+$im->clear();
+$im->destroy();
 
-//     if (!empty($line[0][0]) && $line[0][0] != '#'){
-//             $vcf_data[] = $line;
-
-//     }
-// }
-
-// fclose($vcf_handle);
-// fclose($flank_handle);
-// echo count($vcf_data)."\n";
-// print_r($vcf_data[0]);
-// echo "\n";
+?>

@@ -272,6 +272,7 @@ return [
     ],
 
     'jobsDir' => '/home/rajamuda/htdocs/mysnp/resources/jobs',
+    'phyloDir' => '/home/rajamuda/htdocs/mysnp/resources/phylo-tree',
     'sequenceDir' => '/home/rajamuda/htdocs/mysnp/resources/sequence',
     'dbSnpDir' => '/home/rajamuda/htdocs/mysnp/resources/sequence/dbsnp',
 
@@ -504,13 +505,32 @@ return [
         'preparing',
         'mapping',
         'sorting',
-        // 'mark_duplicate'
-        // 'base_recalibration'
+        'preprocessing',
         'calling',
         'filtering',
         'annotation',
         'storing_to_db',
-        // 'snphylo',
+    ],
+
+    'vcfInfo' => [
+        'DP' => 'Raw read depth',
+        'VDB' => 'Variant distance bias (bigger is better)',
+        'RPB' => 'Read posititon bias (bigger is better)',
+        'MQB' => 'Mapping quality bias (bigger is better)',
+        'BQB' => 'Base quality bias (bigger is better)',
+        'MQSB' => 'Mapping quality vs Strand bias (bigger is better)',
+        'SGB' => 'Segregation based metrics',
+        'MQ0F' => 'Fraction of MQ0 reads (smaller is better)',
+        'PL' => 'Phred-scaled genotype likelihoods',
+        'GT' => 'Genotype',
+        'ICB' => 'Inbreeding coeficient binomial (bigger is better)',
+        'HOB' => 'Bias in the number of HOMs (bigger is better)',
+        'AC' => 'Allele count in genotype for each ALT allele',
+        'AN' => 'Total number of alleles in called genotypes',
+        'DP4' => 'Number of high-quality ref-forward, ref-reverse, alt-forward, and alt-reverse bases',
+        'MQ' => 'Average mapping quality',
+        'AA' => 'Ancestral Allele',
+        'AF' => 'Allele frequency for each ALT allele',
     ],
 
 ];

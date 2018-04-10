@@ -37,6 +37,11 @@ export default {
           icon: 'plus-circle',
           name: this.$t('create_jobs'),
           route: 'jobs.create'
+        },
+        {
+          icon: 'tree',
+          name: this.$t('phylo'),
+          route: 'jobs.construct_phylo'
         }
       ]
     }

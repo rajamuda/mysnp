@@ -107,6 +107,9 @@ return [
         'reads2' => [
             'required_if' => 'The Reads 2 (Pair) field is required (at least 1 reads)',
         ],
+        'samples' => [
+            'required' => 'The Samples field is required (at least 2 samples)'
+        ]
     ],
 
     /*
@@ -129,6 +132,7 @@ return [
         'db_annotate' => 'Annotation Database',
         'seq_mapper' => 'Alignment Tools',
         'snp_caller' => 'SNP Caller',
+        'refseq' => 'References',
     ],
 
 ];

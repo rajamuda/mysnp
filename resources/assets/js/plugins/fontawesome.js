@@ -7,7 +7,7 @@ Vue.component('fa', FontAwesomeIcon)
 // import { } from '@fortawesome/fontawesome-free-regular/shakable.es'
 
 import {
-  faUser, faLock, faSignOutAlt, faCog, faTasks, faPlusCircle, faCaretSquareDown
+  faUser, faLock, faSignOutAlt, faCog, faTasks, faPlusCircle, faCaretSquareDown, faTree
 } from '@fortawesome/fontawesome-free-solid/shakable.es'
 
 import {
@@ -15,5 +15,5 @@ import {
 } from '@fortawesome/fontawesome-free-brands/shakable.es'
 
 fontawesome.library.add(
-  faUser, faLock, faSignOutAlt, faCog, faGithub, faTasks, faPlusCircle, faCaretSquareDown
+  faUser, faLock, faSignOutAlt, faCog, faGithub, faTasks, faPlusCircle, faCaretSquareDown, faTree
 )

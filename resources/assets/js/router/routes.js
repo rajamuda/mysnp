@@ -11,7 +11,9 @@ const SettingsPassword = () => import('~/pages/settings/password')
 const Jobs = () => import('~/pages/jobs/index')
 const JobsList = () => import('~/pages/jobs/list')
 const JobsCreate = () => import('~/pages/jobs/create')
-const JobsProcess= () => import('~/pages/jobs/process')
+const JobsProcess = () => import('~/pages/jobs/process')
+const ConstructPhylo = () => import('~/pages/jobs/construct_phylo')
+const ViewPhylo = () => import('~/pages/jobs/view_phylo')
 const Explore = () => import('~/pages/explore/index')
 const ExploreDetail = () => import('~/pages/explore/detail')
 
@@ -34,7 +36,9 @@ export default [
     { path: '', redirect: { name: 'jobs.list' }},
     { path: 'list', name: 'jobs.list', component: JobsList },
     { path: 'create', name: 'jobs.create', component: JobsCreate },
-    { path: 'process/:id', name: 'jobs.process', component: JobsProcess }
+    { path: 'process/:id', name: 'jobs.process', component: JobsProcess },
+    { path: 'construct-phylo', name: 'jobs.construct_phylo', component: ConstructPhylo },
+    { path: 'view-phylo/:id', name: 'jobs.view_phylo', component: ViewPhylo }
   ] },
   { path: '/explore', name: 'explore', component: Explore },
   { path: '/explore/detail/:id', name: 'explore.detail', component: ExploreDetail },

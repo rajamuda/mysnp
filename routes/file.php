@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Jobs\JobProcessController as JobProcess;
+use App\Http\Controllers\Jobs\PhyloController as Phylo;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,7 +19,7 @@ Route::group(['middleware' => 'auth:file'], function () {
     Route::get('show/stats/{job_id}', function (Request $request) {
        foreach($request->user()->job as $job){
     		if($job->id == $request->job_id)
-        		return readfile(config('app.jobsDir')."/{$request->job_id}/5_annotation/snpEff_summary.html");
+        		return readfile(config('app.jobsDir')."/{$request->job_id}/6_annotation/snpEff_summary.html");
    		}
 
     	abort(403, 'Forbidden Access');
@@ -27,7 +28,7 @@ Route::group(['middleware' => 'auth:file'], function () {
     Route::get('show/genes/{job_id}', function (Request $request) {
     	foreach($request->user()->job as $job){
     		if($job->id == $request->job_id){
-		    	$file = config('app.jobsDir')."/{$request->job_id}/5_annotation/snpEff_genes.txt";
+		    	$file = config('app.jobsDir')."/{$request->job_id}/6_annotation/snpEff_genes.txt";
 
         		$fp = fopen($file, 'r');
         		$line_count = 0;
@@ -59,6 +60,7 @@ Route::group(['middleware' => 'auth:file'], function () {
 				    ++$line_count;
 				}              
 				echo "</table>"; 
+				echo "Line: (".($line_count-1).")";
 				echo "</html>";               
 				fclose($fp);
 				return null;
@@ -72,7 +74,7 @@ Route::group(['middleware' => 'auth:file'], function () {
     Route::get('dl/genes/{job_id}', function (Request $request) {
     	foreach($request->user()->job as $job){
     		if($job->id == $request->job_id){
-		    	$file = config('app.jobsDir')."/{$request->job_id}/5_annotation/snpEff_genes.txt";
+		    	$file = config('app.jobsDir')."/{$request->job_id}/6_annotation/snpEff_genes.txt";
 				header('Content-Description: File Transfer');
 			    header('Content-Type: application/octet-stream');
 			    header('Content-Disposition: attachment; filename="'.basename($file).'"');
@@ -91,6 +93,14 @@ Route::group(['middleware' => 'auth:file'], function () {
 
     Route::get('dl/process_output/{process_id}', function (Request $request) {
     	return JobProcess::getFile($request->process_id, $request->user()->id);
+    });
+
+    Route::get('dl/phylo_output/newick/{phylo_id}', function (Request $request) {
+    	return Phylo::getPhyloNewick($request->phylo_id, $request->user()->id);
+    });
+
+    Route::get('dl/phylo_output/image/{phylo_id}', function (Request $request) {
+    	return Phylo::getPhyloImage($request->phylo_id, $request->user()->id);
     });
 });
 

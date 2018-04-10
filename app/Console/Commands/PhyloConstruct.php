@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use App\Phylo;
 
 class PhyloConstruct extends Command
 {
@@ -11,7 +12,7 @@ class PhyloConstruct extends Command
      *
      * @var string
      */
-    protected $signature = 'jobs:construct-phylo {method} {samples}';
+    protected $signature = 'jobs:construct-phylo {id}';
 
     /**
      * The console command description.
@@ -37,27 +38,29 @@ class PhyloConstruct extends Command
      */
     public function handle()
     {   
-        // artisan jobs:construct-phylo upgma 1,2,3
-        // mean: construct phylogenetic tree using upgma method form sample with id 1, 2, and 3.
+        // artisan jobs:construct-phylo 1
+        // mean: construct phylogenetic tree using configuration with id 1 in db phylo
+        $phylo_id = $this->argument('id');
+        $config = Phylo::findOrFail($phylo_id);
 
-        $method = $this->argument('method');
-        $samples = explode(",", $this->argument('samples')); // comma-separated, containing information about job id
-        $refseq = ""; // todo
-        $phylo_id = ""; // todo
+        $method = $config->method;
+        $samples = explode(",", $config->samples); // comma-separated, containing information about job id
+        $refseq = config('app.sequenceDir')."/references/".$config->refseq->name; // todo
 
-        // must create database to handle 'todo'
-
-        $job_dir = config('app.jobsDir');
-        
+        $job_dir = config('app.jobsDir');        
         $variants = "";
         foreach($samples as $sample){
-            $variants .= "--variant '$job_dir/$sample/4_filtering/output.filtered.vcf' ";
+            $variants .= "--variant '$job_dir/$sample/5_filtering/output.filtered.vcf' ";
         }
 
-        $phylo_dir = "/homer/rajamuda/htdocs/mysnp/resources/phylo-tree/$phylo_id";
-        $command = " java -Xmx2g -jar GenomeAnalysisTK.jar -T CombineVariants -R '$refseq' $variants -o '$phylo_dir/output.combine.vcf' -genotypeMergeOptions UNIQUIFY && `which vk` phylo tree $method '$phylo_dir/output.combine.vcf' > '$phylo_dir/output.tree.nwk' && sed -i -e 's,:-[0-9\.]\+,:0.0,g' '$phylo_dir/output.tree.nwk'";
+        $phylo_dir = config('app.phyloDir')."/$phylo_id";
+        $gatk = config('app.toolsDir.gatk')."/GenomeAnalysisTK.jar";
 
-        shell_exec($command);
+        if(mkdir($phylo_dir)){
+            $phylo_python = config('app.phyloDir')."/Phylo.py";
+            $command = " java -Xmx2g -jar $gatk -T CombineVariants -R '$refseq' $variants -o '$phylo_dir/output.combine.vcf' -genotypeMergeOptions UNIQUIFY && `which vk` phylo tree $method '$phylo_dir/output.combine.vcf' > '$phylo_dir/output.tree.nwk' && sed -i -e 's/:-[0-9\.]\+/:0.0/g' '$phylo_dir/output.tree.nwk' && sed -i -e 's/\.variant[0-9]*//g' '$phylo_dir/output.tree.nwk' && `which python` $phylo_python $phylo_dir/output.tree.nwk";
 
+            shell_exec($command);
+        }
     }
 }

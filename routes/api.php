@@ -30,6 +30,12 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::patch('jobs/{id}/cancel', 'Jobs\JobsController@cancelJobProcess');
     Route::patch('jobs/{id}/resume', 'Jobs\JobsController@resumeJobProcess');
 
+    Route::get('jobs/refseq', 'Jobs\PhyloController@getRefseqJobs');
+    Route::get('jobs/refseq/{refseq_id}', 'Jobs\PhyloController@getJobsByRefseq');
+    Route::post('jobs/phylo/construct', 'Jobs\PhyloController@constructPhylo');
+    Route::get('jobs/phylo/{id}/view', 'Jobs\PhyloController@viewPhylo');
+    Route::get('jobs/phylo/all', 'Jobs\PhyloController@getAllPhylo');
+
     Route::get('data/sequences', 'Jobs\JobsController@getSequences');
     Route::get('data/snpeff', 'Jobs\JobsController@snpEffDB');
 

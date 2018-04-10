@@ -271,7 +271,8 @@ class JobsController extends Controller
                     'user_id' => $request->user()->id,
                     'mapper' => $input['seq_mapper'],
                     'caller' => $input['snp_caller'],
-                    'submitted_at' => date('Y-m-d H:i:s')
+                    'submitted_at' => date('Y-m-d H:i:s'),
+                    'refseq_id' => Sequence::select('id')->where('name', $input['references'])->first()->id
                 ]
             ]);
 
@@ -304,7 +305,7 @@ class JobsController extends Controller
     }
 
     public function getJobs(Request $request){
-        return Job::where('user_id', $request->user()->id)->get();
+        return Job::where('user_id', $request->user()->id)->orderBy('submitted_at', 'DESC')->get();
     }
 
     public function getJobProcessById(Request $request){
@@ -314,7 +315,10 @@ class JobsController extends Controller
             $job->mapper = config('app.toolsAlias')[$job->mapper];
             $job->caller = config('app.toolsAlias')[$job->caller];
 
+            if(strpos($job->status, "RUNNING") !== false) $job->status = "RUNNING";
+
             foreach($job->process as $process){
+                $process->output = config('app.rootDir')."/".$process->output;
                 $process->file_size = exec("du -h '{$process->output}' | awk '{print $1}'");
                 $process->program_message = shell_exec("cat '".dirname($process->output)."/message.out'") ?? "EMPTY";   
             }
@@ -412,8 +416,10 @@ class JobsController extends Controller
                     // $processID = array_search($current_process, config('app.process'));
                     // $job_process = new JobProcessController($job->id);
                     // $job_process->start($processID);
-
-                    $job->status = "RUNNING: $prev_process";
+                    if($prev_process == 'mapping')
+                        $job->status = "WAITING";
+                    else
+                        $job->status = "RUNNING: $prev_process";
                     $job->save();
                 }
             }else{
@@ -484,7 +490,7 @@ class JobsController extends Controller
     }
 
     public function coba(Request $request){
-        return Sequence::select('dbSnp')->where('name', 'Saccharomyces_cerevisiae.fa')->first()->dbSnp ?? "NULL";
+        return Sequence::select('id')->where('name', 'Saccharomyces_cerevisiae.fa')->first()->id ?? "NULL";
     }
 
 }

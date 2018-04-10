@@ -14,7 +14,7 @@ class CreateDbSnpTable extends Migration
     public function up()
     {
         Schema::create('db_snp', function (Blueprint $table) {
-            $table->increments('id');
+            $table->bigIncrements('id');
             $table->integer('user_id')->unsigned();
             $table->integer('job_id')->unsigned();
             $table->string('chrom');
@@ -22,7 +22,7 @@ class CreateDbSnpTable extends Migration
             $table->string('rs_id');
             $table->string('ref');
             $table->string('alt');
-            $table->string('qual');
+            $table->double('qual', 10, 4);
             $table->string('filter');
             $table->string('info');
             $table->string('format');

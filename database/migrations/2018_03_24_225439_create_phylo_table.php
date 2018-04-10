@@ -17,8 +17,9 @@ class CreatePhyloTable extends Migration
             $table->increments('id');
             $table->integer('user_id')->unsigned();
             $table->integer('refseq_id')->unsigned();
-            $table->string('samples');
-            $table->string('method');
+            $table->string('samples'); // ex. 1,2,3
+            $table->string('method'); // nj or upgma
+            $table->string('status'); // RUNNING,FINISHED
             $table->dateTimeTz('submitted_at');
             $table->dateTimeTz('finished_at')->nullable();
 

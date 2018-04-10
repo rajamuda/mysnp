@@ -45,9 +45,8 @@
 					<!-- Reads (dynamic) -->
 					<div class="form-group row">
 						<label v-tooltip="'Choose sequence from NGS machine reads. You can add more than one reads. If you have new reads, you can upload in \'Upload\' section'" class="col-md-3 col-form-label text-md-right">{{ $t('seq_reads') }}</label>
-						<div class="col-md-7">
-							<!-- <multi-select :options="reads_opts" :selected-options="form.reads1" placeholder="Select one or more" class="custom-select" :is-error="form.errors.has('reads1')" @select="onSelectReads1"></multi-select> -->
-							<multiselect v-model="form.reads1" :options="reads_opts" :multiple="true" :close-on-select="false" :clear-on-select="false" :hide-selected="true" :preserve-search="true" placeholder="Select one or more" label="name" track-by="name"></multiselect>
+						<div class="col-md-7" :class="{ 'invalid': form.errors.has('reads1') }">
+							<multiselect v-model="form.reads1" :options="reads_opts" :multiple="true" :close-on-select="false" :clear-on-select="false" :hide-selected="true" :preserve-search="true" :placeholder="$t('select_min_one')" label="name" track-by="name"></multiselect>
               <has-error :form="form" field="reads1"/>
 						</div>
 					</div>
@@ -55,9 +54,8 @@
 					<div v-if="form.reads_type == 'pe'">
 						<div class="form-group row">
 							<label v-tooltip="'Choose sequence from NGS machine reads. You can add more than one reads. If you have new reads, you can upload in \'Upload\' section'" class="col-md-3 col-form-label text-md-right">{{ $t('seq_reads2') }}</label>
-							<div class="col-md-7">
-								<!-- <multi-select :options="reads_opts" :selected-options="form.reads2" placeholder="Select one or more" class="custom-select" :is-error="form.errors.has('reads2')" @select="onSelectReads2"></multi-select> -->
-								<multiselect v-model="form.reads2" :options="reads2_opts" :multiple="true" :close-on-select="false" :clear-on-select="false" :hide-selected="true" :preserve-search="true" placeholder="Select one or more" label="name" track-by="name"></multiselect>
+							<div class="col-md-7" :class="{ 'invalid': form.errors.has('reads2') }">
+								<multiselect v-model="form.reads2" :options="reads2_opts" :multiple="true" :close-on-select="false" :clear-on-select="false" :hide-selected="true" :preserve-search="true" :placeholder="$t('select_min_one')" label="name" track-by="name"></multiselect>
 
 	              <has-error :form="form" field="reads2"/>
 							</div>
@@ -67,8 +65,8 @@
 					<!-- Annotation DB -->
 					<div class="form-group row">
 						<label v-tooltip="'Choose a database to annotate variant'" class="col-md-3 col-form-label text-md-right">{{ $t('seq_db_annotate') }}</label>
-						<div class="col-md-7">
-							<multiselect v-model="form.db_annotate" id="ajax" label="text" track-by="text" placeholder="Search snpEff Annotation DB" open-direction="bottom" :options="db_annotate_opts" :multiple="false" :searchable="true" :loading="db_loading" :internal-search="true" :close-on-select="true" :options-limit="300" :limit="3" :max-height="600" :show-no-results="false" @search-change="populateSnpEffDB"></multiselect>
+						<div class="col-md-7" :class="{ 'invalid': form.errors.has('db_annotate') }">
+							<multiselect v-model="form.db_annotate" id="ajax" label="text" track-by="text" :placeholder="$t('search_snpeff')" open-direction="bottom" :options="db_annotate_opts" :multiple="false" :searchable="true" :loading="db_loading" :internal-search="true" :close-on-select="true" :options-limit="300" :limit="3" :max-height="600" :show-no-results="false" @search-change="populateSnpEffDB"></multiselect>
               <has-error :form="form" field="db_annotate"/>
 						</div>
 					</div>
@@ -98,14 +96,6 @@
               <has-error :form="form" field="snp_caller"/>
 						</div>
 					</div>
-
-					<!-- SNP Phylogenetic Tree Generator -->
-<!-- 					<div class="form-group row">
-						<label v-tooltip="'Tools to generate phylogenetic tree of SNP'" class="col-md-3 col-form-label text-md-right">{{ $t('phylo_generator') }}</label>
-						<div class="col-md-7">
-							<input type="text" value="SNPhylo" class="form-control" disabled />
-						</div>
-					</div> -->
 
 					<!-- Advanced -->
 					<v-button type="default" native-type="button" class="col-md-12 collapsed" data-toggle="collapse" data-target="#advancedParameters">{{ $t('advanced_param') }} <fa icon="caret-square-down" fixed-width/></v-button>
@@ -499,19 +489,17 @@
 	import axios from 'axios'
 	import Vue from 'vue'
 	import VTooltip from 'v-tooltip'
-  import { MultiSelect } from 'vue-search-select'
   import Multiselect from 'vue-multiselect'
   import 'vue-multiselect/dist/vue-multiselect.min.css'
 
 	Vue.use(VTooltip)
-	Vue.component('multi-select', MultiSelect)
 	Vue.component('multiselect', Multiselect)
 
 	export default{
 		scrollToTop: false,
 
 		metaInfo () {
-	    return { title: this.$t('jobs') }
+	    return { title: this.$t('create_jobs') }
 	  },
 
 	  data: () => ({
@@ -531,18 +519,18 @@
 		      seq_mapper: 'bt2',
 		      snp_caller: 'sam',
 		    }),
-		    refopts: [],
-	    	reads_type_opts: [
-	      	{text: 'Single-End', value: 'se'}, 
-	      	{text: 'Paired-End', value: 'pe'}
-	      ],
-	      reads_opts: [],
-	      reads2_opts: [],
-		    db_annotate_opts: [],
-		    seq_mapper_opts: [],
-		    snp_caller_opts: [],
+	    refopts: [],
+    	reads_type_opts: [
+      	{text: 'Single-End', value: 'se'}, 
+      	{text: 'Paired-End', value: 'pe'}
+      ],
+      reads_opts: [],
+      reads2_opts: [],
+	    db_annotate_opts: [],
+	    seq_mapper_opts: [],
+	    snp_caller_opts: [],
 
-		    db_loading: false,
+	    db_loading: false,
 	  }),
 
 	  methods: {
@@ -606,29 +594,35 @@
 	}
 </script>
 
+<style>
+	.help-block.invalid-feedback {
+		display: block !important;
+	}
+
+	.invalid .multiselect > .multiselect__tags {
+		border-color: #dc3545;
+	}
+</style>
+
 <style scoped>
-code{
-	margin-right: 2px;
-	padding: 2px 10px 2px 10px;
-	border-radius: 5px;
-	background-color: #f7f9fb;
-	box-shadow: inset 0 0 1px 1px #ccc;
-}
+	code{
+		margin-right: 2px;
+		padding: 2px 10px 2px 10px;
+		border-radius: 5px;
+		background-color: #f7f9fb;
+		box-shadow: inset 0 0 1px 1px #ccc;
+	}
 
-.help-block.invalid-feedback {
-	display: block !important;
-}
+	.params-set{
+		margin-bottom: 0.5rem;
+	}
 
-.params-set{
-	margin-bottom: 0.5rem;
-}
+	.params-type{
+		font-family: monospace;
+		font-size: 10px;
+	}
 
-.params-type{
-	font-family: monospace;
-	font-size: 10px;
-}
-
-.tab-pane{
-	margin: 10px 20px 10px 20px;
-}
+	.tab-pane{
+		margin: 10px 20px 10px 20px;
+	}
 </style>

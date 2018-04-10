@@ -24,4 +24,8 @@ class Job extends Model
     public function process(){
     	return $this->hasMany('App\Process');
     }
+
+    public function refseq(){
+        return $this->belongsTo('App\Sequence');
+    }
 }

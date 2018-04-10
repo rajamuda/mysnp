@@ -18,4 +18,8 @@ class Sequence extends Model
     public function user(){
     	return $this->belongsTo('App\User');
     }
+
+    public function phylo(){
+        return $this->hasMany('App\Phylo');
+    }
 }

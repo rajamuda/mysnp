@@ -139,8 +139,8 @@
 				try{
 					const { data } = await axios.get('/api/jobs/'+this.job_id+'/process')
 					const maxProcess = window.config.processType.length
-					if(refreshed == true){
-						if(data.process.length == maxProcess-1 && data.process[data.process.length-1].status == 'FINISHED'){
+					if(refreshed == true && data.process.length > 0){
+						if(data.process.length == maxProcess-1 || data.job.status == 'FINISHED'){
 							this.progress = 100
 						}else{
 							this.progress = parseInt((data.process.length/maxProcess)*100)

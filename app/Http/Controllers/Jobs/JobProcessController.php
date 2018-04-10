@@ -77,7 +77,8 @@ class JobProcessController extends Controller
         $this->insertProcess($process);
 
         if($process == 'mapping') $this->mapping();
-    	else if($process == 'sorting') $this->sorting();
+        else if($process == 'sorting') $this->sorting();
+    	else if($process == 'preprocessing') $this->preprocessing();
     	else if($process == 'calling') $this->calling();
     	else if($process == 'filtering') $this->filtering();
         else if($process == 'annotation') $this->annotation();
@@ -112,6 +113,12 @@ class JobProcessController extends Controller
         exec("kill $pid");
     }
 
+    public function cleanString($string) {
+       $string = str_replace(' ', '-', $string); // Replaces all spaces with hyphens.
+
+       return preg_replace('/[^A-Za-z0-9\-]/', '', $string); // Removes special chars.
+    }
+
 
     /**
     | Process pipeline
@@ -125,104 +132,155 @@ class JobProcessController extends Controller
     **/
 
     public function mapping(){
- 	   	if(!is_dir("$this->jobsDir/1_mapping")) mkdir("$this->jobsDir/1_mapping");
+        $currDir = "$this->jobsDir/1_mapping";
 
-    	$output = "$this->jobsDir/1_mapping/output.sam";
-        $stderr = "$this->jobsDir/1_mapping/message.out";
+ 	   	if(!is_dir("$currDir")) mkdir("$currDir");
+
+    	$output = "$currDir/output.sam";
+        $stderr = "$currDir/message.out";
+
+        $sample_name = $this->cleanString($this->title);
 
     	if($this->mapper['tools'] == 'bt2'){
     		$bowtie2 = config('app.toolsDir.bowtie2')."/bowtie2";
-    		$command = "sleep 5 && $bowtie2 {$this->mapper['options']} -x '$this->index' -U '$this->reads' -S '$output'";
+            if($this->reads2 !== "")
+                $command = "sleep 5 && $bowtie2 --rg-id $sample_name --rg LB:$sample_name --rg PL:illumina --rg PU:$sample_name --rg SM:$sample_name {$this->mapper['options']} -x '$this->index' -1 '$this->reads' -2 '$this->reads2' -S '$output'";
+            else
+                $command = "sleep 5 && $bowtie2 --rg-id $sample_name --rg LB:$sample_name --rg PL:illumina --rg PU:$sample_name --rg SM:$sample_name {$this->mapper['options']} -x '$this->index' -U '$this->reads' -S '$output'";
     	}
 
     	$pid = $this->runProcess($command, $stderr);
-        file_put_contents("$this->jobsDir/1_mapping/command.txt", $command);
+        file_put_contents("$currDir/command.txt", $command);
         $this->updateProcess('mapping', 'RUNNING', $pid, $output);
     }
 
     public function sorting(){
- 	   	if(!is_dir("$this->jobsDir/2_sorting")) mkdir("$this->jobsDir/2_sorting");
+        $prevDir = "$this->jobsDir/1_mapping";
+        $currDir = "$this->jobsDir/2_sorting";
 
- 	   	$output = "$this->jobsDir/2_sorting/output";
-        $stderr = "$this->jobsDir/2_sorting/message.out";
+ 	   	if(!is_dir("$currDir")) mkdir("$currDir");
+
+ 	   	$output = "$currDir/output.raw.bam";
+        $stderr = "$currDir/message.out";
 
  	   	if($this->caller['tools'] == 'sam'){
  	   		$samtools = config('app.toolsDir.samtools')."/samtools";
- 	   		$command = "sleep 5 && $samtools sort -O bam -o '{$output}.raw.bam' '$this->jobsDir/1_mapping/output.sam' && $samtools markdup '{$output}.raw.bam' '{$output}.bam' && $samtools index '{$output}.bam'";
+ 	   		$command = "sleep 5 && $samtools sort -O bam -o '{$output}' '$prevDir/output.sam' && $samtools index '{$output}'";
  	   	}
 
  	   	$pid = $this->runProcess($command, $stderr);
-        file_put_contents("$this->jobsDir/2_sorting/command.txt", $command);
-        $this->updateProcess('sorting', 'RUNNING', $pid, $output.'.bam');
+        file_put_contents("$currDir/command.txt", $command);
+        $this->updateProcess('sorting', 'RUNNING', $pid, $output);
+    }
+
+    public function preprocessing(){
+        $prevDir = "$this->jobsDir/2_sorting";
+        $currDir = "$this->jobsDir/3_preprocessing";
+
+        if(!is_dir("$currDir")) mkdir("$currDir");
+
+        $output = "$currDir/output";
+        $stderr = "$currDir/message.out";
+
+        $picard = config('app.toolsDir.gatk')."/picard.jar";
+        $gatk = config('app.toolsDir.gatk')."/GenomeAnalysisTK.jar";
+        
+        // AddOrReplaceReadGroups, MarkDuplicate, Realignment, BSQR (pass 2) 
+        if($this->caller['tools'] == 'sam'){
+            $samtools = config('app.toolsDir.samtools')."/samtools";
+
+            $command = "sleep 5 && java -Xmx2g -jar $picard MarkDuplicates I={$prevDir}/output.raw.bam O={$output}.tmp.bam M={$currDir}/mark_dup_metrics.txt && java -Xmx2g -jar $picard BuildBamIndex I={$output}.tmp.bam && java -Xmx2g -jar $gatk -T RealignerTargetCreator -R {$this->refs} -I {$output}.tmp.bam -o {$currDir}/realignment_targets.list && java -Xmx2g -jar $gatk -T IndelRealigner -R {$this->refs} -I {$output}.tmp.bam  -targetIntervals {$currDir}/realignment_targets.list -o {$output}.bam && $samtools index '{$output}.bam'";
+        }
+
+        $pid = $this->runProcess($command, $stderr);
+        file_put_contents("$currDir/command.txt", $command);
+        $this->updateProcess('preprocessing', 'RUNNING', $pid, $output.'.bam');
+
     }
 
     public function calling(){
- 	   	if(!is_dir("$this->jobsDir/3_calling")) mkdir("$this->jobsDir/3_calling");
+        $prevDir = "$this->jobsDir/3_preprocessing";
+        $currDir = "$this->jobsDir/4_calling";
 
- 	   	$output = "$this->jobsDir/3_calling/output.vcf";
-        $stderr = "$this->jobsDir/3_calling/message.out";
+        // Delete previous unused file
+        unlink($prevDir."/output.tmp.bam");
+        unlink($prevDir."/output.tmp.bai");
 
-        $reg = str_replace("/", "\/", "$this->jobsDir/2_sorting/output.bam");
+ 	   	if(!is_dir("$currDir")) mkdir("$currDir");
+
+ 	   	$output = "$currDir/output.vcf";
+        $stderr = "$currDir/message.out";
+
+        $reg = str_replace("/", "\/", "$prevDir/output.bam");
+        $sample_name = $this->cleanString($this->title);
 
  	   	if($this->caller['tools'] == 'sam'){
  	   		$bcftools = config('app.toolsDir.bcftools')."/bcftools";
             if($this->db_snp != ""){
                 $db_snp = config('app.dbSnpDir')."/".$this->db_snp;
-                $command = "sleep 5 && $bcftools mpileup {$this->caller['options']} -Ou -f '{$this->refs}' '$this->jobsDir/2_sorting/output.bam' | $bcftools call -vmO v | $bcftools view -Oz -o '$output.gz' && $bcftools index '$output.gz' && $bcftools annotate --annotations '$db_snp' --columns ID -o '$output' -O v '$output.gz' && sed -i -e 's/$reg/{$this->title}/g' '$output'";
+                $command = "sleep 5 && $bcftools mpileup {$this->caller['options']} -Ou -f '{$this->refs}' '$prevDir/output.bam' | $bcftools call -vmO v | $bcftools view -Oz -o '$output.gz' && $bcftools index '$output.gz' && $bcftools annotate --annotations '$db_snp' --columns ID -o '$output' -O v '$output.gz' && sed -i -e 's/$reg/{$sample_name}/g' '$output'";
  	   	    }else{
-                $command = "sleep 5 && $bcftools mpileup {$this->caller['options']} -Ou -f '{$this->refs}' '$this->jobsDir/2_sorting/output.bam' | $bcftools call -vmO v -o '$output' && sed -i -e 's/$reg/{$this->title}/g' '$output'";
+                $command = "sleep 5 && $bcftools mpileup {$this->caller['options']} -Ou -f '{$this->refs}' '$prevDir/output.bam' | $bcftools call -vmO v -o '$output' && sed -i -e 's/$reg/{$sample_name}/g' '$output'";
             }
         }
 
  	   	$pid = $this->runProcess($command, $stderr);
-        file_put_contents("$this->jobsDir/3_calling/command.txt", $command);
+        file_put_contents("$currDir/command.txt", $command);
         $this->updateProcess('calling', 'RUNNING', $pid, $output);
     }
 
     public function filtering(){
-        if(!is_dir("$this->jobsDir/4_filtering")) mkdir("$this->jobsDir/4_filtering");
+        $prevDir = "$this->jobsDir/4_calling";
+        $currDir = "$this->jobsDir/5_filtering";
 
- 	   	$output = "$this->jobsDir/4_filtering/output.filtered.vcf";
-        $stderr = "$this->jobsDir/4_filtering/message.out";
+        if(!is_dir("$currDir")) mkdir("$currDir");
+
+ 	   	$output = "$currDir/output.filtered.vcf";
+        $stderr = "$currDir/message.out";
 
  	   	if($this->caller['tools'] == 'sam'){
  	   		$vcfutils = config('app.toolsDir.vcfutils')."/vcfutils.pl";
- 	   		$command = "sleep 5 && $vcfutils varFilter {$this->caller['filter']} '$this->jobsDir/3_calling/output.vcf' > '$output'";
+ 	   		$command = "sleep 5 && $vcfutils varFilter {$this->caller['filter']} '$prevDir/output.vcf' > '$output'";
  	   	}
 
  	   	$pid = $this->runProcess($command, $stderr);
-        file_put_contents("$this->jobsDir/4_filtering/command.txt", $command);
+        file_put_contents("$currDir/command.txt", $command);
         $this->updateProcess('filtering', 'RUNNING', $pid, $output);
     }
 
     public function annotation(){
-        if(!is_dir("$this->jobsDir/5_annotation")) mkdir("$this->jobsDir/5_annotation");
+        $prevDir = "$this->jobsDir/5_filtering";
+        $currDir = "$this->jobsDir/6_annotation";
 
-        $output = "$this->jobsDir/5_annotation";
-        $stderr = "$this->jobsDir/5_annotation/message.out";
+        if(!is_dir("$currDir")) mkdir("$currDir");
+
+        $output = "$currDir";
+        $stderr = "$currDir/message.out";
 
         // $reg = str_replace("/", "\/", "$output/snpEff_genes.txt");
 
         $snpeff = config('app.toolsDir.snpeff');
-        $command = "sleep 5 && cd '$output' && java -Xmx2g -jar $snpeff/snpEff.jar eff -c '$snpeff/snpEff.config' -v '$this->annotation_db' '$this->jobsDir/4_filtering/output.filtered.vcf' > '{$output}/output.eff.vcf' && sed -i -e 's/snpEff_genes.txt/\/file\/show\/genes\/{$this->job_id}/g' '$output/snpEff_summary.html'";
+        $command = "sleep 5 && cd '$output' && java -Xmx2g -jar $snpeff/snpEff.jar eff -c '$snpeff/snpEff.config' -v '$this->annotation_db' '$prevDir/output.filtered.vcf' > '{$output}/output.eff.vcf' && sed -i -e 's/snpEff_genes.txt/\/file\/show\/genes\/{$this->job_id}/g' '$output/snpEff_summary.html'";
 
         $pid = $this->runProcess($command, $stderr);
-        file_put_contents("$this->jobsDir/5_annotation/command.txt", $command);
+        file_put_contents("$currDir/command.txt", $command);
         $this->updateProcess('annotation', 'RUNNING', $pid, $output.'/output.eff.vcf');
     }
 
     public function storing_to_db(){
-        if(!is_dir("$this->jobsDir/6_storing_to_db")) mkdir("$this->jobsDir/6_storing_to_db");
+        $currDir = "$this->jobsDir/7_storing_to_db";
 
-        $output = "$this->jobsDir/6_storing_to_db";
-        $stderr = "$this->jobsDir/6_storing_to_db/message.out";
+        if(!is_dir("$currDir")) mkdir("$currDir");
+
+        $output = "$currDir/output.flank.fa";
+        $stderr = "$currDir/message.out";
 
         $artisan = config('app.rootDir')."/artisan";
         $command = "sleep 5 && $artisan jobs:store-db $this->job_id $this->refs";
 
         $pid = $this->runProcess($command, $stderr);
-        file_put_contents("$this->jobsDir/6_storing_to_db/command.txt", $command);
-        $this->updateProcess('storing_to_db', 'RUNNING', $pid, $output.'/output.flank.fa');
+        file_put_contents("$currDir/command.txt", $command);
+        $this->updateProcess('storing_to_db', 'RUNNING', $pid, $output);
     }
 
 

@@ -41,8 +41,20 @@
                       </option>
                     </select>
                     <select v-else-if="filter.attr[index] == 'chrom'" v-model="filter.value[index]" name="chrom-value" class="custom-select mr-sm-2">
-                      <option value="" disabled>Choose one</option>
+                      <option value="" disabled>{{ $t('select_one') }}</option>
                       <option v-for="opt in chrom_opts" :value="opt">
+                        {{ opt }}
+                      </option>
+                    </select>
+                    <select v-else-if="filter.attr[index] == 'eff_annotation'" v-model="filter.value[index]" name="annotation-value" class="custom-select mr-sm-2">
+                      <option value="" disabled>{{ $t('select_one') }}</option>
+                      <option v-for="opt in annotation_opts" :value="opt">
+                        {{ opt }}
+                      </option>
+                    </select>
+                    <select v-else-if="filter.attr[index] == 'eff_impact'" v-model="filter.value[index]" name="impact-value" class="custom-select mr-sm-2">
+                      <option value="" disabled>{{ $t('select_one') }}</option>
+                      <option v-for="opt in impact_opts" :value="opt">
                         {{ opt }}
                       </option>
                     </select>
@@ -79,7 +91,8 @@
       <div v-if="job_selection != '' && selected_job.result">
         SNPs Information from "<router-link :to="{ name: 'jobs.process', params: { id: selected_job.result.value }}">{{ selected_job.result.text }}</router-link>"
       </div>
-      <table class="table table-hover" v-if="table_data.length">
+      <center>
+      <table class="table table-hover table-responsive" v-if="table_data.length">
         <thead>
           <tr>
             <th>{{ $t('chrom') }}</th>
@@ -88,6 +101,8 @@
             <th>{{ $t('ref') }}</th>
             <th>{{ $t('alt') }}</th>
             <th>{{ $t('qual') }}</th>
+            <th>{{ $t('eff_annotation') }}</th>
+            <th>{{ $t('eff_impact') }}</th>
             <th>{{ $t('option') }}</th>
           </tr>
         </thead>
@@ -99,10 +114,13 @@
             <td>{{ value.ref }}</td>
             <td>{{ value.alt }}</td>
             <td>{{ value.qual }}</td>
+            <td><span v-if="value.annotation">{{ value.annotation.replace(/\|/g, ', ') }}</span><span v-else>-</span></td>
+            <td><span v-if="value.impact">{{ value.impact.replace(/\|/g, ', ') }}</span><span v-else>-</span></td>
             <td><router-link :to="{ name: 'explore.detail', params: { id: value.id }}">{{ $t('detail') }}</router-link></td>
           </tr>
         </tbody>  
       </table>
+      </center>
       {{ $t('total_row') }}: {{ pagination.total }}
       <div id="pagination-table">
         <pagination :pagination="pagination" :callback="changePage"></pagination>
@@ -131,10 +149,12 @@ export default {
       operator: ['='],
       value: [''],
     },
-    attr_opts: ['chrom', 'ref', 'alt', 'pos', 'rs_id', 'qual'],
+    attr_opts: ['chrom', 'ref', 'alt', 'pos', 'rs_id', 'qual', 'eff_annotation', 'eff_impact'],
     operator_opts: ['=', '!=', '<=', '>='],
     base_opts: ['C', 'A', 'T', 'G'],
     chrom_opts: [],
+    annotation_opts: ['missense_variant','synonymous_variant','upstream_gene_variant','downstream_gene_variant','intergenic_region', 'intron_variant', '3_prime_UTR_variant', '5_prime_UTR_variant','stop_lost','start_lost','stop_gained'],
+    impact_opts: ['HIGH','MODERATE','LOW','MODIFIER'],
     query: {},
   }),
 
@@ -167,12 +187,15 @@ export default {
       let show = this.show_selection
       let page = this.page_selection
       let query = JSON.stringify(this.query)
-      console.log('/api/db-snp/'+job+'?show='+show+'&page='+page+'&query='+query)
-      const { data } = await axios.get('/api/db-snp/'+job+'?show='+show+'&page='+page+'&query='+query)
-
-      this.table_data = data.result
-      this.pagination = data.pagination
-      this.chrom_opts = data.chrom
+      // console.log('/api/db-snp/'+job+'?show='+show+'&page='+page+'&query='+query)
+      try{
+        const { data } = await axios.get('/api/db-snp/'+job+'?show='+show+'&page='+page+'&query='+query)
+        this.table_data = data.result
+        this.pagination = data.pagination
+        this.chrom_opts = data.chrom
+      }catch(e){
+        console.log(e)
+      }
     },
 
     async getJobs () {

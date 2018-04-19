@@ -243,22 +243,22 @@ return [
     | Provide directory address for jobs, tools, and sequence
     |
     */
-    'rootDir' => '/home/rajamuda/htdocs/mysnp',
+    'rootDir' => env('APP_ROOT'),
 
     'toolsDir' => [
-        'bowtie2' => '/home/rajamuda/htdocs/mysnp/resources/tools/mapper/bowtie2',
-        'bwa' => '/home/rajamuda/htdocs/mysnp/resources/tools/mapper/bwa',
+        'bowtie2' => env('APP_ROOT').'/resources/tools/mapper/bowtie2',
+        'bwa' => env('APP_ROOT').'/resources/tools/mapper/bwa',
 
-        'samtools' => '/home/rajamuda/htdocs/mysnp/resources/tools/caller/samtools',
-        'bcftools' => '/home/rajamuda/htdocs/mysnp/resources/tools/caller/bcftools',
-        'vcfutils' => '/home/rajamuda/htdocs/mysnp/resources/tools/caller/bcftools/misc',
-        'vcflib' => '/home/rajamuda/htdocs/mysnp/resources/tools/vcflib/bin',
+        'samtools' => env('APP_ROOT').'/resources/tools/caller/samtools',
+        'bcftools' => env('APP_ROOT').'/resources/tools/caller/bcftools',
+        'vcfutils' => env('APP_ROOT').'/resources/tools/caller/bcftools/misc',
+        'vcflib' => env('APP_ROOT').'/resources/tools/vcflib/bin',
 
-        'gatk' => '/home/rajamuda/htdocs/mysnp/resources/tools/caller/gatk',
+        'gatk' => env('APP_ROOT').'/resources/tools/caller/gatk',
 
-        'snpeff' => '/home/rajamuda/htdocs/mysnp/resources/tools/annotate/snpEff',
+        'snpeff' => env('APP_ROOT').'/resources/tools/annotate/snpEff',
 
-        'snphylo' => '/home/rajamuda/htdocs/mysnp/resources/tools/snphylo',
+        'snphylo' => env('APP_ROOT').'/resources/tools/snphylo',
     ],
 
     'toolsAlias' => [
@@ -271,10 +271,10 @@ return [
         'picard' => 'Picard',
     ],
 
-    'jobsDir' => '/home/rajamuda/htdocs/mysnp/resources/jobs',
-    'phyloDir' => '/home/rajamuda/htdocs/mysnp/resources/phylo-tree',
-    'sequenceDir' => '/home/rajamuda/htdocs/mysnp/resources/sequence',
-    'dbSnpDir' => '/home/rajamuda/htdocs/mysnp/resources/sequence/dbsnp',
+    'jobsDir' => env('APP_ROOT').'/resources/jobs',
+    'phyloDir' => env('APP_ROOT').'/resources/phylo-tree',
+    'sequenceDir' => env('APP_ROOT').'/resources/sequence',
+    'dbSnpDir' => env('APP_ROOT').'/resources/sequence/dbsnp',
 
 
     /*

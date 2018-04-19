@@ -72,7 +72,7 @@
 					</div>
 
 					<!-- Seq Mapper -->
-					<div class="form-group row">
+					<!-- <div class="form-group row">
 						<label v-tooltip="'Choose an alignment tools to map references with each reads.'" class="col-md-3 col-form-label text-md-right">{{ $t('seq_mapper') }}</label>
 						<div class="col-md-7">
 							<select v-model="form.seq_mapper" name="seq_mapper" class="custom-select" :class="{ 'is-invalid': form.errors.has('seq_mapper') }">
@@ -82,7 +82,7 @@
 							</select>
               <has-error :form="form" field="seq_mapper"/>
 						</div>
-					</div>
+					</div> -->
 
 					<!-- SNP Caller -->
 					<div class="form-group row">

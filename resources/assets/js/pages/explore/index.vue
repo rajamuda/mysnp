@@ -114,8 +114,8 @@
             <td>{{ value.ref }}</td>
             <td>{{ value.alt }}</td>
             <td>{{ value.qual }}</td>
-            <td><span v-if="value.annotation">{{ value.annotation.replace(/\|/g, ', ') }}</span><span v-else>-</span></td>
-            <td><span v-if="value.impact">{{ value.impact.replace(/\|/g, ', ') }}</span><span v-else>-</span></td>
+            <td><span v-if="value.annotation">{{ value.annotation.split('|').filter(onlyUnique).join(', ') }}</span><span v-else>-</span></td>
+            <td><span v-if="value.impact">{{ value.impact.split('|').filter(onlyUnique).join(', ') }}</span><span v-else>-</span></td>
             <td><router-link :to="{ name: 'explore.detail', params: { id: value.id }}">{{ $t('detail') }}</router-link></td>
           </tr>
         </tbody>  
@@ -244,7 +244,12 @@ export default {
         return true
 
       return false
+    },
+
+    onlyUnique(value, index, self) { 
+        return self.indexOf(value) === index;
     }
+
   },
 
   computed: {
@@ -257,7 +262,6 @@ export default {
         result: this.jobs.find((x) => { return x.value == this.job_selection})
       }
     },
-
   },
 
   mounted () {

@@ -5,6 +5,7 @@ const PasswordEmail = () => import('~/pages/auth/password/email')
 const PasswordReset = () => import('~/pages/auth/password/reset')
 
 const Home = () => import('~/pages/home')
+const About = () => import('~/pages/about')
 const Settings = () => import('~/pages/settings/index')
 const SettingsProfile = () => import('~/pages/settings/profile')
 const SettingsPassword = () => import('~/pages/settings/password')
@@ -27,6 +28,7 @@ export default [
   { path: '/password/reset/:token', name: 'password.reset', component: PasswordReset },
 
   { path: '/home', name: 'home', component: Home },
+  { path: '/about', name: 'about', component: About },
   { path: '/settings', component: Settings, children: [
     { path: '', redirect: { name: 'settings.profile' }},
     { path: 'profile', name: 'settings.profile', component: SettingsProfile },

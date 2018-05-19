@@ -9,62 +9,72 @@
 		<div class="tab-content" id="nav-tabContent">
 			<!-- Jobs List -->
 			<div class="tab-pane fade show active" id="nav-jobs" role="tabpanel" aria-labelledby="nav-jobs-tab">
-				<div v-for="(job, index) in jobs">
-					<div class="card border-primary mb-1 mt-3">	
-						<!-- TO DO: add sort by submit date or job's title, show selection & limit result -->		
-					  <router-link :to="{ name: 'jobs.process', params: { id: job.id }}"><div class="card-header text-white bg-primary">{{ job.title }}</div></router-link>
-					  <div class="card-body text-dark">
-					  	<div class="process-status">
-						    <table>
-						    	<tr>
-						    		<td>{{ $t('status' )}}</td>
-						    		<td class="colon"> : </td>
-						    		<td>{{ job.status }}</td>
-						    	</tr>
-						    	<tr>
-						    		<td>{{ $t('start_date') }}</td>
-						    		<td class="colon"> : </td>
-						    		<td>{{ job.submitted_at }}</td>
-						    	</tr>
-						    	<tr>
-						    		<td>{{ $t('finish_date') }}</td>
-						    		<td class="colon"> : </td>
-						    		<td>{{ job.finished_at }}</td>
-						    	</tr>
-						    </table>
-					  	</div>
-					  </div>
+				<div v-if='jobs[0]'>
+					<div v-for="(job, index) in jobs">
+						<div class="card border-primary mb-1 mt-3">	
+							<!-- TO DO: add sort by submit date or job's title, show selection & limit result -->		
+						  <router-link :to="{ name: 'jobs.process', params: { id: job.id }}"><div class="card-header text-white bg-primary">{{ job.title }}</div></router-link>
+						  <div class="card-body text-dark">
+						  	<div class="process-status">
+							    <table>
+							    	<tr>
+							    		<td>{{ $t('status' )}}</td>
+							    		<td class="colon"> : </td>
+							    		<td>{{ job.status }}</td>
+							    	</tr>
+							    	<tr>
+							    		<td>{{ $t('start_date') }}</td>
+							    		<td class="colon"> : </td>
+							    		<td>{{ job.submitted_at }}</td>
+							    	</tr>
+							    	<tr>
+							    		<td>{{ $t('finish_date') }}</td>
+							    		<td class="colon"> : </td>
+							    		<td>{{ job.finished_at }}</td>
+							    	</tr>
+							    </table>
+						  	</div>
+						  </div>
+						</div>
 					</div>
+				</div>
+				<div v-else>
+					<div class="text-center mt-2 mb-2"><i>No SNP jobs were created<br/><router-link :to="{ name: 'jobs.create' }">Create One</router-link></i></div>
 				</div>
 			</div>
 			<!-- Phylos List -->
 			<div class="tab-pane" id="nav-phylo" role="tabpanel" aria-labelledby="nav-phylo-tab">
-				<div v-for="(phy, index) in phylo">
-					<div class="card border-primary mb-1 mt-3">	
-						<!-- TO DO: add sort by submit date or job's title, show selection & limit result -->		
-					  <router-link :to="{ name: 'jobs.view_phylo', params: { id: phy.id }}"><div class="card-header text-white bg-primary">{{ phy.name || "NO NAME" }}</div></router-link>
-					  <div class="card-body text-dark">
-					  	<div class="process-status">
-						    <table>
-						    	<tr>
-						    		<td>{{ $t('status' )}}</td>
-						    		<td class="colon"> : </td>
-						    		<td>{{ phy.status }}</td>
-						    	</tr>
-						    	<tr>
-						    		<td>{{ $t('start_date') }}</td>
-						    		<td class="colon"> : </td>
-						    		<td>{{ phy.submitted_at }}</td>
-						    	</tr>
-						    	<tr>
-						    		<td>{{ $t('finish_date') }}</td>
-						    		<td class="colon"> : </td>
-						    		<td>{{ phy.finished_at }}</td>
-						    	</tr>
-						    </table>
-					  	</div>
-					  </div>
+				<div v-if="phylo[0]">	
+					<div v-for="(phy, index) in phylo">
+						<div class="card border-primary mb-1 mt-3">	
+							<!-- TO DO: add sort by submit date or job's title, show selection & limit result -->		
+						  <router-link :to="{ name: 'jobs.view_phylo', params: { id: phy.id }}"><div class="card-header text-white bg-primary">{{ phy.name || "Unnamed" }}</div></router-link>
+						  <div class="card-body text-dark">
+						  	<div class="process-status">
+							    <table>
+							    	<tr>
+							    		<td>{{ $t('status' )}}</td>
+							    		<td class="colon"> : </td>
+							    		<td>{{ phy.status }}</td>
+							    	</tr>
+							    	<tr>
+							    		<td>{{ $t('start_date') }}</td>
+							    		<td class="colon"> : </td>
+							    		<td>{{ phy.submitted_at }}</td>
+							    	</tr>
+							    	<tr>
+							    		<td>{{ $t('finish_date') }}</td>
+							    		<td class="colon"> : </td>
+							    		<td>{{ phy.finished_at }}</td>
+							    	</tr>
+							    </table>
+						  	</div>
+						  </div>
+						</div>
 					</div>
+				</div>
+				<div v-else>
+					<div class="text-center mt-2 mb-2"><i>No phylogenetic trees were constructed<br/><router-link :to="{ name: 'jobs.construct_phylo' }">Create One</router-link></i></div>
 				</div>
 			</div>
 		</div>

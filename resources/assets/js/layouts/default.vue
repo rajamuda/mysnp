@@ -6,7 +6,7 @@
       <child/>
     </div>
 
-    <v-footer>&copy; {{ year }} Bogor Agricultural University</v-footer>
+    <v-footer>&copy; {{ year }} {{ $t('copyright') }}</v-footer>
   </div>
 </template>
 

@@ -23,6 +23,16 @@
             </div>
           </div>
 
+          <!-- Organization -->
+          <div class="form-group row">
+            <label class="col-md-3 col-form-label text-md-right">{{ $t('organization') }}</label>
+            <div class="col-md-7">
+              <input v-model="form.organization" type="organization" name="organization" class="form-control"
+                :class="{ 'is-invalid': form.errors.has('organization') }">
+              <has-error :form="form" field="organization"/>
+            </div>
+          </div>
+
           <!-- Password -->
           <div class="form-group row">
             <label class="col-md-3 col-form-label text-md-right">{{ $t('password') }}</label>
@@ -63,6 +73,7 @@
 <script>
 import Form from 'vform'
 import LoginWithGithub from '~/components/LoginWithGithub'
+import axios from 'axios'
 
 export default {
   middleware: 'guest',
@@ -79,6 +90,7 @@ export default {
     form: new Form({
       name: '',
       email: '',
+      organization: '',
       password: '',
       password_confirmation: ''
     })
@@ -87,19 +99,35 @@ export default {
   methods: {
     async register () {
       // Register the user.
-      const { data } = await this.form.post('/api/register')
+      try{
+        // const { data } = await this.form.post('/api/register')
+        let postData = {
+          name: this.form.name,
+          email: this.form.email,
+          organization: this.form.organization,
+          password: this.form.password,
+          password_confirmation: this.form.password_confirmation,
+        }
+        const { data } = await axios.post('/api/register', postData)
       
-      // Log in the user.
-      const { data: { token }} = await this.form.post('/api/login')
+        // Log in the user.
+        const { data: { token }} = await this.form.post('/api/login')
 
-      // Save the token.
-      this.$store.dispatch('auth/saveToken', { token })
+        // Save the token.
+        this.$store.dispatch('auth/saveToken', { token })
 
-      // Update the user.
-      await this.$store.dispatch('auth/updateUser', { user: data })
+        // Update the user.
+        await this.$store.dispatch('auth/updateUser', { user: data })
 
-      // Redirect home.
-      this.$router.push({ name: 'home' })
+        // Redirect home.
+        this.$router.push({ name: 'home' })
+      }catch(e){
+        console.error(e)
+        if(e.response.data.errors){
+          let errors = e.response.data.errors
+          this.form.errors.set(errors)
+        }
+      }
     }
   }
 }

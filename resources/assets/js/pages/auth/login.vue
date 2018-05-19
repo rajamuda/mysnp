@@ -2,14 +2,16 @@
   <div class="row">
     <div class="col-lg-8 m-auto">
       <card :title="$t('login')">
+        <alert-error :form="form" message="Your credentials <b>(email/password)</b> information <b>does not match</b> or <b>wrong</b>"></alert-error>
         <form @submit.prevent="login" @keydown="form.onKeydown($event)">
           <!-- Email -->
           <div class="form-group row">
             <label class="col-md-3 col-form-label text-md-right">{{ $t('email') }}</label>
             <div class="col-md-7">
-              <input v-model="form.email" type="email" name="email" class="form-control"
-                :class="{ 'is-invalid': form.errors.has('email') }">
-              <has-error :form="form" field="email"/>
+              <input v-model="form.email" type="email" name="email" class="form-control">
+              <!-- 
+                :class="{ 'is-invalid': form.errors.has('email') }" -->
+              <!-- <has-error :form="form" field="email"/> -->
             </div>
           </div>
 
@@ -17,9 +19,10 @@
           <div class="form-group row">
             <label class="col-md-3 col-form-label text-md-right">{{ $t('password') }}</label>
             <div class="col-md-7">
-              <input v-model="form.password" type="password" name="password" class="form-control"
-                :class="{ 'is-invalid': form.errors.has('password') }">
-              <has-error :form="form" field="password"/>
+              <input v-model="form.password" type="password" name="password" class="form-control">
+              <!--  
+                :class="{ 'is-invalid': form.errors.has('password') }"> -->
+              <!-- <has-error :form="form" field="password"/> -->
             </div>
           </div>
 

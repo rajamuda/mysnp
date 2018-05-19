@@ -13,21 +13,27 @@
         <router-link :to="{ name: 'register' }">
           {{ $t('register') }}
         </router-link>
+        <router-link :to="{ name: 'about' }">
+          {{ $t('about') }}
+        </router-link>
       </template>
     </div>
 
     <div class="text-center">
-      <div class="title mb-4">
+      <div class="title">
         {{ title }}
       </div>
+      <div class="mb-4">
+        {{ $t('tagline') }}
+      </div>
 
-      <div class="links">
+<!--       <div class="links">
         <a href="https://laravel.com/docs">Documentation</a>
         <a href="https://laracasts.com">Laracasts</a>
         <a href="https://laravel-news.com">News</a>
         <a href="https://forge.laravel.com">Forge</a>
         <a href="https://github.com/laravel/laravel">GitHub</a>
-      </div>
+      </div> -->
     </div>
   </div>
 </template>
@@ -60,6 +66,6 @@ export default {
 }
 
 .title {
-  font-size: 85px;
+  font-size: 7rem;
 }
 </style>

@@ -33,6 +33,11 @@
                 {{ $t('explore') }}
               </router-link>
             </li>
+            <li class="nav-item">
+              <router-link :to="{ name: 'about' }" class="nav-link" active-class="active">
+                {{ $t('about') }}
+              </router-link>
+            </li>
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle text-dark"
                 href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -63,6 +68,11 @@
             <li class="nav-item">
               <router-link :to="{ name: 'register' }" class="nav-link" active-class="active">
                 {{ $t('register') }}
+              </router-link>
+            </li>
+            <li class="nav-item">
+              <router-link :to="{ name: 'about' }" class="nav-link" active-class="active">
+                {{ $t('about') }}
               </router-link>
             </li>
           </template>

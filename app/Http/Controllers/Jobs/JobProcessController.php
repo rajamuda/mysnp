@@ -315,7 +315,7 @@ class JobProcessController extends Controller
 
     public function updateProcess($process, $status, $pid = null, $output = null){
         $rootDir = config('app.rootDir')."/";
-        $output = str_replace($rootDir,'',$output)
+        $output = str_replace($rootDir,'',$output);
 
         if($status == 'RUNNING'){
             Process::where([

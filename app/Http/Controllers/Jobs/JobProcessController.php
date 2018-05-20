@@ -388,7 +388,7 @@ class JobProcessController extends Controller
     public static function getFile($processID, $user_id){
         $process = Process::findOrFail($processID);
 
-        $file = $process->output;
+	$file = config('app.rootDir')."/".$process->output;
         if (file_exists($file)) {
             if($process->job->user_id == $user_id){
                 header('Content-Description: File Transfer');

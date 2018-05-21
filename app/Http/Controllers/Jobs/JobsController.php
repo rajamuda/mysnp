@@ -360,15 +360,12 @@ class JobsController extends Controller
     
     public function cancelJobProcess(Request $request){
         try{
-            $job = Job::findOrFail($request->id)->where('user_id', $request->user()->id)->first();
-
+            $job = Job::where([['id', '=', $request->id],['user_id','=',$request->user()->id]])->first();
             if($job){
                 if($job->status == 'WAITING'){
                     $job->status = "CANCELED";
                     $job->save();
-                }
-                
-                if(substr($job->status,0,7) == 'RUNNING'){
+                }else if(substr($job->status,0,7) == 'RUNNING'){
                     foreach($job->process as $process){
                         if(substr($job->status, 9) == $process->process){
                             JobProcessController::killProcess($process->pid);
@@ -382,9 +379,8 @@ class JobsController extends Controller
                     // } 
                     $job->save();
                 }
-                // return $job;
             }else{
-                abort(403, 'Forbidden Access');
+                abort(404, 'Not Found');
             }
 
         }catch(\Illuminate\Database\Eloquent\ModelNotFoundException $e){
@@ -396,7 +392,7 @@ class JobsController extends Controller
 
     public function resumeJobProcess(Request $request){
         try{
-            $job = Job::findOrFail($request->id)->where('user_id', $request->user()->id)->first();
+            $job = Job::where([['id', '=', $request->id],['user_id','=',$request->user()->id]])->first();
 
             if($job){
                 if($job->status == 'CANCELED'){

@@ -110,7 +110,7 @@ class JobProcessController extends Controller
     }
 
     public static function killProcess($pid){
-        exec("kill $pid");
+        exec("kill -9 $pid");
     }
 
     public function cleanString($string) {

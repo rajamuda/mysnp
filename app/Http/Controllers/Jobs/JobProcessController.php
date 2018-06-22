@@ -95,8 +95,11 @@ class JobProcessController extends Controller
     | killProcess       (-)     : kill process with specific PID
     **/
 
-    public function runProcess($command, $stderr = null){
-        return (int)shell_exec(sprintf('nohup bash -c "%s 2> %s" </dev/null >/dev/null 2>/dev/null & echo $!', $command, $stderr));
+    public function runProcess($command, $stderr = '/dev/null', $additional_command = ''){
+        if($additional_command === '')
+            return (int)shell_exec(sprintf('nohup bash -c "%s 2> %s" </dev/null >/dev/null 2>/dev/null & echo $!', $command, $stderr));
+        else
+            return (int)shell_exec(sprintf('nohup bash -c "%s 2> %s && %s" </dev/null >/dev/null 2>/dev/null & echo $!', $command, $stderr, $additional_command));
     }
 
     public static function isProcessRunning($pid){
@@ -203,28 +206,29 @@ class JobProcessController extends Controller
         $currDir = "$this->jobsDir/4_calling";
 
         // Delete previous unused file
-        unlink($prevDir."/output.tmp.bam");
-        unlink($prevDir."/output.tmp.bai");
+        if(file_exists($prevDir."/output.tmp.bam")) unlink($prevDir."/output.tmp.bam");
+        if(file_exists($prevDir."/output.tmp.bai")) unlink($prevDir."/output.tmp.bai");
 
  	   	if(!is_dir("$currDir")) mkdir("$currDir");
 
- 	   	$output = "$currDir/output.vcf";
-        $stderr = "$currDir/message.out";
-
         $reg = str_replace("/", "\/", "$prevDir/output.bam");
         $sample_name = $this->cleanString($this->title);
+
+ 	   	$output = "$currDir/output.vcf";
+        $stderr = "$currDir/message.out";
+        $additional_command = "sed -i -e 's/$reg/{$sample_name}/g' '$output'";
 
  	   	if($this->caller['tools'] == 'sam'){
  	   		$bcftools = config('app.toolsDir.bcftools')."/bcftools";
             if($this->db_snp != ""){
                 $db_snp = config('app.dbSnpDir')."/".$this->db_snp;
-                $command = "sleep 5 && $bcftools mpileup {$this->caller['options']} -Ou -f '{$this->refs}' '$prevDir/output.bam' | $bcftools call -vmO v | $bcftools view -Oz -o '$output.gz' && $bcftools index '$output.gz' && $bcftools annotate --annotations '$db_snp' --columns ID -o '$output' -O v '$output.gz' && sed -i -e 's/$reg/{$sample_name}/g' '$output'";
+                $command = "sleep 5 && $bcftools mpileup {$this->caller['options']} -Ou -f '{$this->refs}' '$prevDir/output.bam' | $bcftools call -vmO v | $bcftools view -Oz -o '$output.gz' && $bcftools index '$output.gz' && $bcftools annotate --annotations '$db_snp' --columns ID -o '$output' -O v '$output.gz'";
  	   	    }else{
-                $command = "sleep 5 && $bcftools mpileup {$this->caller['options']} -Ou -f '{$this->refs}' '$prevDir/output.bam' | $bcftools call -vmO v -o '$output' && sed -i -e 's/$reg/{$sample_name}/g' '$output'";
+                $command = "sleep 5 && $bcftools mpileup {$this->caller['options']} -Ou -f '{$this->refs}' '$prevDir/output.bam' | $bcftools call -vmO v -o '$output'";
             }
         }
 
- 	   	$pid = $this->runProcess($command, $stderr);
+ 	   	$pid = $this->runProcess($command, $stderr, $additional_command);
         file_put_contents("$currDir/command.txt", $command);
         $this->updateProcess('calling', 'RUNNING', $pid, $output);
     }
@@ -256,13 +260,14 @@ class JobProcessController extends Controller
 
         $output = "$currDir";
         $stderr = "$currDir/message.out";
+        $additional_command = "sed -i -e 's/snpEff_genes.txt/\/file\/show\/genes\/{$this->job_id}/g' '$output/snpEff_summary.html'";
 
         // $reg = str_replace("/", "\/", "$output/snpEff_genes.txt");
 
         $snpeff = config('app.toolsDir.snpeff');
-        $command = "sleep 5 && cd '$output' && java -Xmx2g -jar $snpeff/snpEff.jar eff -c '$snpeff/snpEff.config' -v '$this->annotation_db' '$prevDir/output.filtered.vcf' > '{$output}/output.eff.vcf' && sed -i -e 's/snpEff_genes.txt/\/file\/show\/genes\/{$this->job_id}/g' '$output/snpEff_summary.html'";
+        $command = "sleep 5 && cd '$output' && java -Xmx2g -jar $snpeff/snpEff.jar eff -c '$snpeff/snpEff.config' -v '$this->annotation_db' '$prevDir/output.filtered.vcf' > '{$output}/output.eff.vcf'";
 
-        $pid = $this->runProcess($command, $stderr);
+        $pid = $this->runProcess($command, $stderr, $additional_command);
         file_put_contents("$currDir/command.txt", $command);
         $this->updateProcess('annotation', 'RUNNING', $pid, $output.'/output.eff.vcf');
     }
@@ -338,6 +343,18 @@ class JobProcessController extends Controller
         }
     }
 
+    /* BOOL */
+    public static function hasProcessError($job_id, $pid){
+        $process = Process::where([['job_id', '=', $job_id], ['pid', '=', $pid]])->first();
+        $processOutput = config('app.rootDir')."/".$process->output;
+
+        if(file_exists($processOutput) && filesize($processOutput) > 0){
+            return false;
+        }
+
+        return true;
+    }
+
     /* GET */
     public static function getSubmittedJobs(){
         return Job::where('status', 'WAITING')->get(['id']);
@@ -363,6 +380,18 @@ class JobProcessController extends Controller
 
     public static function setProcessFinished($job_id, $pid){
         Process::where([['job_id', '=', $job_id], ['pid', '=', $pid]])->update(['status' => 'FINISHED', 'finished_at' => date('Y-m-d H:i:s')]);
+    }
+
+    public static function setProcessFailure($job_id, $pid){
+        DB::beginTransaction();
+        try{
+            Process::where([['job_id', '=', $job_id], ['pid', '=', $pid]])->update(['status' => 'ERROR', 'finished_at' => date('Y-m-d H:i:s')]);
+            Job::where('id', $job_id)->update(['status' => 'ERROR', 'finished_at' => date('Y-m-d H:i:s')]);
+
+            DB::commit();
+        }catch(\Exception $e){
+            DB::rollback();
+        }
     }
 
     public static function updateJobProcess($id, $processID = 1){

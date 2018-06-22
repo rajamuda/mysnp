@@ -37,16 +37,18 @@
 			<div class="output-message" v-html="config"></div>
     </div><br/>
 		<div class="progress">
-			<div class="progress-bar progress-bar-striped" :class="{'bg-success': (job.status == 'FINISHED'), 'bg-danger': (job.status == 'CANCELED')}" role="progressbar" :style="{width: progress + '%'}" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"> {{ progress }}% </div>
+			<div class="progress-bar progress-bar-striped" :class="{'bg-success': (job.status == 'FINISHED'), 'bg-warning': (job.status == 'CANCELED'), 'bg-danger': (job.status == 'ERROR')}" role="progressbar" :style="{width: progress + '%'}" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"> {{ progress }}% </div>
 		</div>
-		<div id="button" style="margin-top: 5px;text-align:right"> 
+		<div v-if="job.status != 'ERROR'" id="button" style="margin-top: 5px;text-align:right"> 
 			<span v-if="job.status == 'FINISHED'">
 				<router-link :to="{ name: 'explore', query: {job: job_id}}"><button type="button" class="btn btn-primary">{{ $t('explore_snp') }}</button></router-link>
 				<a :href="'/file/show/stats/' + job.id" target="_blank"><v-button type="success" native-type="button">{{ $t('snp_stat') }}</v-button></a>
 			</span>
 			<button v-else-if="job.status == 'CANCELED'" class="btn btn-info" type="button" @click="resumeJob()">{{ $t('resume') }}</button>
 			<button v-else class="btn btn-danger" type="button" @click="cancelJob()">{{ $t('cancel') }}</button>
-			
+		</div>
+		<div v-else style="margin-top: 5px;text-align:center" class="alert alert-danger">
+			Unfortunately, an error has been occured. We are very sorry for this to be happened.<br/> We'll try our best to fix this problem ASAP.
 		</div>
 		<!-- {{ job }} -->
 		<div v-for="(jp, index) in job_process">

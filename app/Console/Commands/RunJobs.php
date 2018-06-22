@@ -65,7 +65,7 @@ class RunJobs extends Command
 
                 // cek apakah job dengan process id masih berjalan             
                 if(JobProcess::getRunningJobProcess($process, $job->id)->status == 'FINISHED'){
-                    $processID++; // kalau sudah seleai, lanjutkan ke proses berikutnya
+                    $processID++; // kalau sudah selesai, lanjutkan ke proses berikutnya
 
                     if($processID >= $maxProcess){
                         JobProcess::setJobFinished($job->id);
@@ -73,7 +73,7 @@ class RunJobs extends Command
                     }else{
                         JobProcess::updateJobProcess($job->id, $processID);
                         $job_process = new JobProcess($job->id);
-                        $job_process->start($processID); // start process
+                        $job_process->start($processID); // start next process
                         echo date('Y-m-d H:i:s')." Running '".app('config')->get('app')['process'][$processID]."'\n";
                     }
                 }
@@ -83,8 +83,13 @@ class RunJobs extends Command
             $runningProcess = JobProcess::getRunningProcess();
             foreach($runningProcess as $process){
                 if(!JobProcess::isProcessRunning($process->pid)){
-                    JobProcess::setProcessFinished($process->job_id, $process->pid);
-                    echo date('Y-m-d H:i:s')." Finishing process '{$process->process}' of job '{$process->job_id}' with pid '{$process->pid}'\n";
+                    if(JobProcess::hasProcessError($process->job_id, $process->pid)){
+                        JobProcess::setProcessFailure($process->job_id, $process->pid);
+                        echo date('Y-m-d H:i:s')."An error occured within '{$process->process}' of job '{$process->job_id}'";
+                    }else{
+                        JobProcess::setProcessFinished($process->job_id, $process->pid);
+                        echo date('Y-m-d H:i:s')." Finishing process '{$process->process}' of job '{$process->job_id}' with pid '{$process->pid}'\n";
+                    }
                 }
             }
 

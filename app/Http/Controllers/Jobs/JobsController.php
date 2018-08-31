@@ -70,6 +70,15 @@ class JobsController extends Controller
 
     }
 
+
+    public function activationStatus(Request $request){
+        if($request->user()->activation_status){
+            return ['status' => 1];
+        }
+
+        return ['status' => 0];
+    }
+
     // create new jobs
     public function create(Request $request)
     {

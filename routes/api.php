@@ -44,6 +44,8 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     Route::get('test', 'Jobs\JobsController@coba');
 
+    Route::get('user/activation_status', 'Jobs\JobsController@activationStatus');
+
 });
 
 Route::group(['middleware' => 'guest:api'], function () {

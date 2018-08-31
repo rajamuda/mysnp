@@ -1,6 +1,6 @@
 <template>
 	<div class="row">
-		<div class="col-lg-12 m-auto">
+		<div v-if="user_status === 1" class="col-lg-12 m-auto">
 			<card :title="$t('create_jobs')">
 				<!-- {{ form.errors }} -->
 				<!-- <alert-error :form="form" message="There were some problems with your input."></alert-error> -->
@@ -481,6 +481,11 @@
 				</form>
 			</card>
 		</div>
+		<div v-else class="col-lg-12 m-auto">
+			<p class="alert alert-warning">
+      	Your account is not activated yet. Wait for admin to activate your account or send an e-mail to us.          
+      </p>
+		</div>
 	</div>
 </template>
 
@@ -529,7 +534,7 @@
 	    db_annotate_opts: [],
 	    seq_mapper_opts: [],
 	    snp_caller_opts: [],
-
+	    user_status: 1,
 	    db_loading: false,
 	  }),
 
@@ -587,9 +592,20 @@
       onSelectReads2 (items, lastSelectItem) {
         this.form.reads2 = items
       },
+
+      checkStatus () {
+      	axios.get('/api/user/activation_status')
+      		.then(({data}) => {
+      			this.user_status = data.status
+      		})
+      		.catch((e) => {
+      			console.error(e)
+      		})
+      }
 	  },
 
 	  mounted () {
+	  	this.checkStatus();
 	  	this.populateOptions();
 	  },
 	}

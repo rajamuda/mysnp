@@ -97,37 +97,38 @@
 	import axios from 'axios'
 	import swal from 'sweetalert2'
 
-	Vue.use(VueSocketio, 'http://localhost:4200')
+	// Vue.use(VueSocketio, 'http://localhost:4200')
 	
 	export default{
 		scrollToTop: false,
 
-		sockets:{
-	    connect: function(){
-	      // console.log('socket connected')
-	    },
-	    stream: function(val){
-	      // console.log('this method was fired by the socket server. eg: io.emit("customEmit", data)')
-	      console.log(val)
-	    	// this.$socket.emit('stream', 1)
-	    	if(val.message != '0'){
-		    	this.socket_progress = val.message.split('\n').slice(0,-1)
-		    	this.progress = parseInt(this.socket_progress[this.socket_progress.length-1].split(';')[0])
-		    	this.checkProgress()
-		    }else{
-		    	this.progress = 0
-		    }
-	    },
-	    connect_error: function(){
-	    	// console.log('server not running')
-	    	// manually fetch data
-	    	this.checkProgress(true)
-	    }
-	  },
+		// sockets:{
+	 //    connect: function(){
+	 //      // console.log('socket connected')
+	 //    },
+	 //    stream: function(val){
+	 //      // console.log('this method was fired by the socket server. eg: io.emit("customEmit", data)')
+	 //      console.log(val)
+	 //    	// this.$socket.emit('stream', 1)
+	 //    	if(val.message != '0'){
+		//     	this.socket_progress = val.message.split('\n').slice(0,-1)
+		//     	this.progress = parseInt(this.socket_progress[this.socket_progress.length-1].split(';')[0])
+		//     	this.checkProgress(false)
+		//     }else{
+		//     	this.progress = 0
+		//     }
+	 //    },
+	 //    connect_error: function(){
+	 //    	// console.log('server not running')
+	 //    	// manually fetch data
+	 //    	this.checkProgress(true)
+	 //    }
+	 //  },
 
 		data () {
 			return{
 				socket_progress: '',
+				job_process_progress: '',
 				progress: 0,
 				job: {},
 				job_process: [],
@@ -137,7 +138,7 @@
 		},
 
 		methods: {
-			async checkProgress (refreshed = false) {
+			async checkProgress (refreshed = true) {
 				try{
 					const { data } = await axios.get('/api/jobs/'+this.job_id+'/process')
 					const maxProcess = window.config.processType.length
@@ -148,7 +149,7 @@
 							this.progress = parseInt((data.process.length/maxProcess)*100)
 						}
 					
-						this.$socket.emit('join', this.job_id)
+						// this.$socket.emit('join', this.job_id)
 					}
 					
 					this.job = data.job
@@ -176,7 +177,7 @@
 				if (result.value) {
 					try{
 						await axios.patch('/api/jobs/'+this.job_id+'/cancel')
-						this.checkProgress()
+						this.checkProgress(false)
 				    swal(
 				      'Canceled!',
 				      'Your jobs has been canceled',
@@ -202,7 +203,7 @@
 				if (result.value) {
 					try{
 						await axios.patch('/api/jobs/'+this.job_id+'/resume')
-						this.checkProgress()
+						this.checkProgress(false)
 				    swal(
 				      'Resumed!',
 				      'Your jobs has been resumed',
@@ -225,7 +226,12 @@
 		created () {
 			// this.$socket.emit('join', 1)
 			this.job_id = this.$route.params.id;
-			this.checkProgress(true)
+			this.checkProgress()
+			this.job_process_progress = setInterval(this.checkProgress, 5000)
+		},
+
+		beforeDestroy (){
+			clearInterval(this.job_process_progress)
 		},
 
 		metaInfo () {

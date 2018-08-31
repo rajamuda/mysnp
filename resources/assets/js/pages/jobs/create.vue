@@ -4,7 +4,7 @@
 			<card :title="$t('create_jobs')">
 				<!-- {{ form.errors }} -->
 				<!-- <alert-error :form="form" message="There were some problems with your input."></alert-error> -->
-				<form @submit.prevent="create" @keydown="form.onKeydown($event)">
+				<form @submit.prevent="createJobs" @keydown="form.onKeydown($event)">
 					<!-- Title -->
 					<div class="form-group row">
             <label v-tooltip="'Title for this jobs'" class="col-md-3 col-form-label text-md-right">{{ $t('jobs_title') }}</label>
@@ -567,7 +567,8 @@
 	  			})
 	  	},
 
-	  	create () {
+	  	createJobs () {
+	  		console.log('creating jobs')
 	  		this.form.post('/api/jobs/create')
 	  			.then(({data}) => {
 	  				console.log(data)

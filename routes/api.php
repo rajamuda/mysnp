@@ -54,6 +54,12 @@ Route::group(['middleware' => 'guest:api'], function () {
 
     Route::post('oauth/{driver}', 'Auth\OAuthController@redirectToProvider');
     Route::get('oauth/{driver}/callback', 'Auth\OAuthController@handleProviderCallback')->name('oauth.callback');
+    
+    Route::get('testaja', function(){
+	if(app()->isLocal()) echo "Local";
+	else echo "Prod";
+	echo config('app.env');
+    });
 });
 
 Route::get('login', function () {

@@ -277,7 +277,7 @@ class JobsController extends Controller
             ]);
 
             $job_id = DB::getPdo()->lastInsertId();
-
+            
             $jobsDir = config('app.jobsDir')."/".$job_id;
             
             $old = umask(0);
@@ -294,7 +294,7 @@ class JobsController extends Controller
           // return json_encode($input);
         }catch(\Exception $e){
             DB::rollback();
-            return ["status" => false, "message"=> $e];        
+            return ["status" => false, "message"=> $e->getMessage()];        
         }
         // return "benar";
     }

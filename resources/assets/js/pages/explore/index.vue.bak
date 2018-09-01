@@ -1,8 +1,7 @@
 <template>
   <card :title="$t('explore_snp')">
     <!-- {{ $t('you_are_logged_in') }} -->
-    <!-- <div v-if="!job_id" style="padding-bottom: 10px"> -->
-    <div style="padding-bottom: 10px">
+    <div v-if="!job_id" style="padding-bottom: 10px">
       <select v-model="job_selection" name="job_selection" class="form-control">
         <option disabled value="">{{ $t('select_one') }}</option>
         <option v-for="opt in jobs" :value="opt.value">
@@ -166,6 +165,7 @@ export default {
   watch: {
     job_selection: function (newval) {
       this.getSnpInfo()
+      this.updateHistory()
     },
 
     show_selection: async function (newval) {
@@ -174,14 +174,15 @@ export default {
         this.pagination.current_page = this.pagination.last_page
         this.changePage()
       }
+      this.updateHistory()
     }
   },
 
   methods: {
     changePage () {
       this.page_selection = this.pagination.current_page
-      this.$router.push({name: 'explore', query: {job: this.job_selection, page: this.page_selection, show: this.show_selection}})
-      // this.getSnpInfo()
+      this.getSnpInfo()
+      this.updateHistory()
     },
 
     async getSnpInfo () {
@@ -250,6 +251,11 @@ export default {
 
     onlyUnique(value, index, self) { 
         return self.indexOf(value) === index;
+    },
+
+    updateHistory() {
+    	history.pushState({job_selection: this.job_selection, page_selection: this.page_selection}, this.$t('explore_snp'), this.$route.fullPath)
+    	// console.log(this.$route)
     }
 
   },
@@ -257,14 +263,6 @@ export default {
   computed: {
     job_id: function () {
       return this.$route.query.job
-    },
-
-    page_no: function () {
-      return this.$route.query.page
-    },
-
-    show_row: function () {
-      return this.$route.query.show
     },
 
     selected_job: function () {
@@ -278,17 +276,12 @@ export default {
     if(this.job_id != undefined){
       this.job_selection = this.job_id
     }
-    if(this.page_no != undefined){
-      this.page_selection = this.page_no
-    }
-    if(this.show_row != undefined){
-      this.show_selection = this.show_row
-    }
-    this.getJobs()  
-  },
-
-  beforeDestroy () {
-    this.table_data = []
+    this.getJobs()
+  	
+  	window.addEventListener('popstate', function (e) {
+  		this.page_selection = (e.state || {page_selection: 1}).page_selection
+  		this.job_selection = (e.state || {job_selection: ''}).job_selection
+  	})  
   },
 
   components: {

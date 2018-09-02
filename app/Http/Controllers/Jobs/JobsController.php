@@ -363,7 +363,7 @@ class JobsController extends Controller
         }catch(\Illuminate\Database\Eloquent\ModelNotFoundException $e){
             abort(404, 'Not Found or Not yours');
         }catch(\Exception $e){
-            abort(500, 'Error(s) Occured with '.$e->getMessage());
+            abort(500, 'Error(s) Occured with "'.$e->getMessage().'" on Line '.$e->getLine());
         }
     }
     

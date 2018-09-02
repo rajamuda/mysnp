@@ -550,7 +550,7 @@
 
 		    const caller = [
 		    	{ text: 'Bcftools (Samtools)', value: 'sam' },
-		    	{ text: 'GATK', value: 'gatk' }
+		    	// { text: 'GATK', value: 'gatk' }
 		    ]
 
 		    this.refopts = data.refs

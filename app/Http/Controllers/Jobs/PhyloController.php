@@ -23,7 +23,7 @@ class PhyloController extends Controller
 		$user_id = $request->user()->id;
     	$refseq_id = $request->refseq_id;
 
-    	return Job::select('id as value', 'title as name')->where([['user_id', '=', $user_id],['refseq_id', '=', $refseq_id]])->get();
+    	return Job::select('id as value', 'title as name')->where([['user_id', '=', $user_id],['refseq_id', '=', $refseq_id],['status', '=', 'FINISHED']])->get();
     }
 
     public function getAllPhylo(Request $request){

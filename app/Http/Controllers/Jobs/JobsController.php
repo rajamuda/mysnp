@@ -44,7 +44,7 @@ class JobsController extends Controller
         header('Content-Type: application/json');
 
         $db = config('app.toolsDir.snpeff')."/snpEff.database";
-        $query = $request->query('query');
+        $query = str_replace(' ', '_', $request->query('query'));
 
         $count = 0;
         if(file_exists($db)){
@@ -68,6 +68,11 @@ class JobsController extends Controller
         }
         
 
+    }
+
+    public function defaultSnpEffDB(Request $request){
+        $refseq_name = $request->refseq_name;
+        return Sequence::select('default_snpeffdb')->where('name', $refseq_name)->first();
     }
 
 

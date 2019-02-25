@@ -38,6 +38,7 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     Route::get('data/sequences', 'Jobs\JobsController@getSequences');
     Route::get('data/snpeff', 'Jobs\JobsController@snpEffDB');
+    Route::get('data/default-snpeff/{refseq_name}', 'Jobs\JobsController@defaultSnpEffDB');
 
     Route::get('db-snp/{job_id}', 'ExploreController@getSnpInfo');
     Route::get('db-snp/detail/{id}', 'ExploreController@getSnpDetail');

@@ -147,9 +147,9 @@ class JobProcessController extends Controller
     	if($this->mapper['tools'] == 'bt2'){
     		$bowtie2 = config('app.toolsDir.bowtie2')."/bowtie2";
             if($this->reads2 !== "")
-                $command = "sleep 5 && $bowtie2 --rg-id $sample_name --rg LB:$sample_name --rg PL:illumina --rg PU:$sample_name --rg SM:$sample_name {$this->mapper['options']} -x '$this->index' -1 '$this->reads' -2 '$this->reads2' -S '$output'";
+                $command = "sleep 5 && $bowtie2 --threads 8 --rg-id $sample_name --rg LB:$sample_name --rg PL:illumina --rg PU:$sample_name --rg SM:$sample_name {$this->mapper['options']} -x '$this->index' -1 '$this->reads' -2 '$this->reads2' -S '$output'";
             else
-                $command = "sleep 5 && $bowtie2 --rg-id $sample_name --rg LB:$sample_name --rg PL:illumina --rg PU:$sample_name --rg SM:$sample_name {$this->mapper['options']} -x '$this->index' -U '$this->reads' -S '$output'";
+                $command = "sleep 5 && $bowtie2 --threads 8 --rg-id $sample_name --rg LB:$sample_name --rg PL:illumina --rg PU:$sample_name --rg SM:$sample_name {$this->mapper['options']} -x '$this->index' -U '$this->reads' -S '$output'";
     	}
 
     	$pid = $this->runProcess($command, $stderr);

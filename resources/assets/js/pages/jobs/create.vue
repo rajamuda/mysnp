@@ -19,7 +19,7 @@
 					<div class="form-group row">
 						<label v-tooltip="'Sequences references If you have new references, you can upload in \'Upload\' section'" class="col-md-3 col-form-label text-md-right">{{ $t('seq_references') }}</label>
 						<div class="col-md-7">
-							<select v-model="form.references" name="references" class="custom-select" :class="{ 'is-invalid': form.errors.has('references') }">
+							<select v-model="form.references" name="references" class="custom-select" :class="{ 'is-invalid': form.errors.has('references') }" @change="getDefaultSnpEffDB($event)">
 								<option disabled value="">{{ $t('select_one') }}</option>
 								<option v-for="opt in refopts" v-bind:value="opt.name">
 									{{ opt.name }}
@@ -571,6 +571,18 @@
 	  				console.error(e)
 	  			})
 	  	},
+
+			getDefaultSnpEffDB (query) {
+				let refseq_name = query.target.value
+
+				axios.get('/api/data/default-snpeff/'+refseq_name)
+					.then(({data}) => {
+						this.form.db_annotate = {text: data.default_snpeffdb, value: data.default_snpeffdb}
+					})
+					.catch(e => {
+	  				console.error(e)
+	  			})
+			},
 
 	  	createJobs () {
 	  		console.log('creating jobs')

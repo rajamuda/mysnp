@@ -54,7 +54,7 @@ class PhyloController extends Controller
     public static function getPhyloNewick($phylo_id, $user_id){
     	$phylo = Phylo::findOrFail($phylo_id);
 
-    	if($phylo->id == $user_id){
+    	if($phylo->user_id == $user_id){
     		$tree = config('app.phyloDir')."/$phylo_id/output.tree.nwk";
     		if(file_exists($tree)){
     			header('Content-Description: File Transfer');
@@ -80,7 +80,7 @@ class PhyloController extends Controller
     public static function getPhyloImage($phylo_id, $user_id){
         $phylo = Phylo::findOrFail($phylo_id);
 
-        if($phylo->id == $user_id){
+        if($phylo->user_id == $user_id){
             $tree = config('app.phyloDir')."/$phylo_id/phylo_tree.svg";
             if(file_exists($tree)){
                 $im = new Imagick();
